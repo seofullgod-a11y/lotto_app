@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ตรวจหวย — ผลสลากกินแบ่งรัฐบาล สด ทุกงวด</title>
+  <meta name="description" content="ตรวจหวยงวดล่าสุด รายงานผลสดระหว่างถ่ายทอด กรอกเลขสลากเช็คได้หลายใบ พร้อมสถิติย้อนหลังและแจ้งเตือนผ่าน Telegram" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap">
+      <a class="brand" href="/">
+        <b>ตรวจหวย</b><span>สลากกินแบ่งรัฐบาล</span>
+      </a>
+      <nav class="nav">
+        <a href="/" aria-current="page">ตรวจหวย</a>
+        <a href="/stats">สถิติย้อนหลัง</a>
+        <a href="#subscribe">รับแจ้งเตือน</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="eyebrow">ผลออกรางวัล</p>
+    <section class="ticket" id="ticket">
+      <div class="ticket-top">
+        <div class="draw-date">
+          <span id="draw-date" class="skeleton">งวดวันที่ — — —</span>
+          <small id="draw-status"></small>
+        </div>
+        <span class="live-badge" id="live-badge"><span class="live-dot"></span> กำลังออกรางวัล</span>
+      </div>
+
+      <div class="first-prize">
+        <div class="label">รางวัลที่ 1</div>
+        <div class="num" id="p-first">——————</div>
+        <div class="reward">รางวัลละ 6,000,000 บาท</div>
+      </div>
+
+      <div class="grid-prizes">
+        <div class="cell"><div class="k">เลขหน้า 3 ตัว</div><div class="v multi" id="p-front3">—</div></div>
+        <div class="cell"><div class="k">เลขท้าย 3 ตัว</div><div class="v multi" id="p-back3">—</div></div>
+        <div class="cell"><div class="k">เลขท้าย 2 ตัว</div><div class="v" id="p-back2">—</div></div>
+        <div class="cell"><div class="k">ข้างเคียงรางวัลที่ 1</div><div class="v multi" id="p-near1">—</div></div>
+      </div>
+
+      <button class="more-toggle" id="more-toggle" aria-expanded="false">ดูรางวัลที่ 2–5 ทั้งหมด</button>
+      <div class="more-list" id="more-list"></div>
+    </section>
+
+    <p class="eyebrow">เช็คสลากของคุณ</p>
+    <section class="panel">
+      <div class="field-row">
+        <div class="field">
+          <label for="numbers" class="lbl-display">หมายเลขสลาก (กรอกได้หลายใบ คั่นด้วยเว้นวรรคหรือขึ้นบรรทัดใหม่)</label>
+          <textarea id="numbers" rows="3" placeholder="097863&#10;123456"></textarea>
+        </div>
+        <div class="field" style="flex:0 1 180px">
+          <label for="draw-select" class="lbl-display">งวด</label>
+          <select id="draw-select"><option value="latest">งวดล่าสุด</option></select>
+        </div>
+      </div>
+      <div class="field-row" style="margin-top:14px">
+        <button class="btn" id="check-btn">ตรวจรางวัล</button>
+        <button class="btn ghost" id="clear-btn">ล้าง</button>
+      </div>
+      <p class="hint">เราสนับสนุนการซื้อสลากกินแบ่งรัฐบาลอย่างถูกกฎหมายเท่านั้น</p>
+      <div class="results" id="results"></div>
+    </section>
+
+    <section class="section-gap" id="subscribe">
+      <p class="eyebrow">แจ้งเตือนอัตโนมัติ</p>
+      <h2 class="h-section">เฝ้าเลขไว้ พอหวยออกให้บอททักเลย</h2>
+      <div class="panel tg-card">
+        <div class="body">
+          <p>เปิดบอทใน Telegram แล้วพิมพ์เลขที่คุณลุ้นไว้ ทันทีที่เราประกาศผล (สดจากไลฟ์) บอทจะเช็คให้อัตโนมัติและทักหาคุณถ้าถูกรางวัล</p>
+          <ul class="clean">
+            <li><span class="cmd">/watch 123456</span> — เฝ้าเลขสลาก 6 หลัก</li>
+            <li><span class="cmd">/watch2 45</span> — เฝ้าเลขท้าย 2 ตัว</li>
+            <li><span class="cmd">/list</span> — ดูเลขที่เฝ้าอยู่ &nbsp; <span class="cmd">/stop</span> — ลบทั้งหมด</li>
+          </ul>
+          <p class="note" style="margin-top:14px" id="tg-link-note"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap">
+      <span class="note">ข้อมูลผลรางวัลเป็นข้อเท็จจริงสาธารณะ • ผลทางการยึดตามสำนักงานสลากกินแบ่งรัฐบาล</span>
+      <span class="note">ตรวจสอบซ้ำกับใบตรวจหวยทุกครั้งก่อนขึ้นเงิน</span>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

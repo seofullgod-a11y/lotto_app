@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แผงกรอกผลสด — ตรวจหวย</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .full { grid-column:1/-1; }
+    textarea.small { min-height:64px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+    #log { font-family:var(--mono); font-size:.82rem; white-space:pre-wrap; margin-top:16px; color:var(--ink-70); }
+    @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <div class="wrap"><a class="brand" href="/"><b>ตรวจหวย</b><span>แผงควบคุม</span></a>
+      <nav class="nav"><a href="/">หน้าเว็บ</a></nav></div>
+  </header>
+
+  <main class="wrap">
+    <p class="eyebrow">กรอกผลระหว่างถ่ายทอดสด</p>
+    <h1 class="h-section" style="font-size:1.3rem">แผงกรอกผลสด</h1>
+    <p class="note" style="margin-bottom:20px">กรอกแต่ละรางวัลตอนประกาศบนไลฟ์ แล้วกด “บันทึก & รายงานสด” ผู้ชมจะเห็นเลขอัปเดตทันที เมื่อครบทุกรางวัลกด “ประกาศผลทางการ” เพื่อส่งแจ้งเตือน Telegram</p>
+
+    <section class="panel">
+      <div class="field" style="margin-bottom:14px">
+        <label>รหัสผ่านแอดมิน (ADMIN_TOKEN)</label>
+        <input id="token" type="password" placeholder="วางโทเคน" class="lbl-display" />
+      </div>
+      <div class="row2">
+        <div class="field"><label>วันที่งวด</label><input id="date" type="date" class="lbl-display" /></div>
+        <div class="field"><label>รางวัลที่ 1 (6 หลัก)</label><input id="first" inputmode="numeric" maxlength="6" /></div>
+        <div class="field"><label>เลขท้าย 2 ตัว</label><input id="back2" inputmode="numeric" maxlength="2" /></div>
+        <div class="field"><label>ข้างเคียงรางวัลที่ 1 (คั่นด้วยช่องว่าง)</label><input id="near1" /></div>
+        <div class="field"><label>เลขหน้า 3 ตัว</label><input id="front3" placeholder="290 742" /></div>
+        <div class="field"><label>เลขท้าย 3 ตัว</label><input id="back3" placeholder="339 881" /></div>
+        <div class="field full"><label>รางวัลที่ 2 (5 เลข)</label><textarea id="second" class="small"></textarea></div>
+        <div class="field full"><label>รางวัลที่ 3 (10 เลข)</label><textarea id="third" class="small"></textarea></div>
+        <div class="field full"><label>รางวัลที่ 4 (50 เลข)</label><textarea id="fourth" class="small"></textarea></div>
+        <div class="field full"><label>รางวัลที่ 5 (100 เลข)</label><textarea id="fifth" class="small"></textarea></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="save">บันทึก &amp; รายงานสด</button>
+        <button class="btn" id="publish" style="background:var(--gold);border-color:var(--gold);color:#3a2c00">ประกาศผลทางการ (แจ้งเตือน)</button>
+        <button class="btn ghost" id="sync">ดึงจาก API ทางการ</button>
+        <button class="btn ghost" id="load">โหลดงวดนี้มาแก้</button>
+      </div>
+      <div id="log"></div>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const log = (m) => { $('log').textContent = (new Date()).toLocaleTimeString('th-TH') + '  ' + m + '\n' + $('log').textContent; };
+    if (sessionStorage.token) $('token').value = sessionStorage.token;
+    const arr = (s) => (s || '').trim().split(/[\s,]+/).filter(Boolean);
+
+    function collect() {
+      return {
+        first: $('first').value.replace(/\D/g,''),
+        back2: $('back2').value.replace(/\D/g,''),
+        near1: arr($('near1').value),
+        front3: arr($('front3').value),
+        back3: arr($('back3').value),
+        second: arr($('second').value),
+        third: arr($('third').value),
+        fourth: arr($('fourth').value),
+        fifth: arr($('fifth').value),
+      };
+    }
+    async function post(url, body) {
+      const token = $('token').value.trim();
+      sessionStorage.token = token;
+      const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || r.status);
+      return d;
+    }
+    function fill(draw) {
+      $('first').value=draw.first||''; $('back2').value=draw.back2||'';
+      $('near1').value=(draw.near1||[]).join(' '); $('front3').value=(draw.front3||[]).join(' ');
+      $('back3').value=(draw.back3||[]).join(' '); $('second').value=(draw.second||[]).join(' ');
+      $('third').value=(draw.third||[]).join(' '); $('fourth').value=(draw.fourth||[]).join(' ');
+      $('fifth').value=(draw.fifth||[]).join(' ');
+    }
+
+    $('save').onclick = async () => {
+      const date = $('date').value; if (!date) return log('กรุณาเลือกวันที่');
+      try { const d = await post('/api/admin/draw', { date, patch: collect(), final:false }); log('บันทึก & รายงานสดแล้ว ✓'); }
+      catch(e){ log('ผิดพลาด: '+e.message); }
+    };
+    $('publish').onclick = async () => {
+      const date = $('date').value; if (!date) return log('กรุณาเลือกวันที่');
+      if (!confirm('ประกาศผลทางการและส่งแจ้งเตือนผู้ที่เฝ้าเลขไว้?')) return;
+      try { await post('/api/admin/draw', { date, patch: collect(), final:true }); log('ประกาศผลทางการ + ส่งแจ้งเตือนแล้ว ✓'); }
+      catch(e){ log('ผิดพลาด: '+e.message); }
+    };
+    $('sync').onclick = async () => {
+      try { const d = await post('/api/admin/sync', {}); fill(d.draw); $('date').value=d.draw.date; log('ดึงจาก '+d.source+' สำเร็จ ✓'); }
+      catch(e){ log('ดึงไม่สำเร็จ: '+e.message); }
+    };
+    $('load').onclick = async () => {
+      const date = $('date').value; if (!date) return log('กรุณาเลือกวันที่');
+      try { const r = await fetch('/api/draw/'+date); const d = await r.json(); if(!r.ok) throw new Error(d.error); fill(d.draw); log('โหลดงวด '+date+' แล้ว'); }
+      catch(e){ log('โหลดไม่ได้: '+e.message); }
+    };
+  </script>
+</body>
+</html>
