@@ -181,12 +181,33 @@ app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sta
 // --- boot (only when run directly) ----------------------------------------
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMain) {
+  const url = process.env.DATABASE_URL || '';
+  // Internal Railway + localhost don't use SSL; public proxies / Supabase do.
+  const needsSsl = /proxy\.rlwy\.net|rlwy\.net|supabase|amazonaws|render|\bsslmode=require\b/.test(url);
   const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false },
+    connectionString: url,
+    ssl: needsSsl ? { rejectUnauthorized: false } : false,
   });
   const { app, initDb } = createApp(pool);
-  initDb()
+
+  // Railway's private network ("*.railway.internal") takes a few seconds to
+  // come up after the container starts. Retry with backoff before giving up.
+  const boot = async () => {
+    const max = 10;
+    for (let i = 1; i <= max; i++) {
+      try {
+        await initDb();
+        return;
+      } catch (e) {
+        const last = i === max;
+        console.error(`เชื่อมฐานข้อมูลครั้งที่ ${i}/${max} ไม่สำเร็จ: ${e.code || e.message}${last ? '' : ' — ลองใหม่...'}`);
+        if (last) throw e;
+        await new Promise((r) => setTimeout(r, Math.min(1000 * i, 5000)));
+      }
+    }
+  };
+
+  boot()
     .then(() => {
       startBot(pool);
       app.listen(PORT, () => console.log(`ตรวจหวย พร้อมทำงานที่พอร์ต ${PORT}`));
