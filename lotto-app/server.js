@@ -242,7 +242,18 @@ app.get('/healthz', (req, res) => res.json({ ok: true }));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'stats.html')));
 
-  return { app, initDb };
+  // Pull the latest GLO result and store it (used by the scheduler).
+  async function autoSync() {
+    const { draw, source } = await syncLatest();
+    const existing = await getDraw('government', draw.date);
+    await upsertDraw('government', draw);
+    bustStats('government');
+    broadcast('draw', { lottery: 'government', kind: 'government', draw, thaiDate: isoToThaiDate(draw.date), final: true });
+    if (!existing) notifyDraw(pool, 'government', draw).catch(() => {});
+    return { source, date: draw.date };
+  }
+
+  return { app, initDb, autoSync };
 }
 
 // --- boot (only when run directly) ----------------------------------------
@@ -255,7 +266,20 @@ if (isMain) {
     connectionString: url,
     ssl: needsSsl ? { rejectUnauthorized: false } : false,
   });
-  const { app, initDb } = createApp(pool);
+  const { app, initDb, autoSync } = createApp(pool);
+
+  // Optional scheduled auto-sync for the government result (set AUTO_SYNC=1).
+  // Polls every AUTO_SYNC_MINUTES (default 30); GLO updates itself on draw days.
+  function startAutoSync() {
+    if (process.env.AUTO_SYNC !== '1') return;
+    const mins = Math.max(5, parseInt(process.env.AUTO_SYNC_MINUTES || '30', 10));
+    const run = () => autoSync()
+      .then((r) => console.log(`[auto-sync] อัปเดตงวด ${r.date} จาก ${r.source}`))
+      .catch((e) => console.error('[auto-sync]', e.message));
+    setTimeout(run, 10_000); // first run shortly after boot
+    setInterval(run, mins * 60_000);
+    console.log(`[auto-sync] เปิดใช้งาน ทุก ${mins} นาที (เฉพาะหวยรัฐบาล)`);
+  }
 
   // Railway's private network ("*.railway.internal") takes a few seconds to
   // come up after the container starts. Retry with backoff before giving up.
@@ -277,6 +301,7 @@ if (isMain) {
   boot()
     .then(() => {
       startBot(pool);
+      startAutoSync();
       app.listen(PORT, () => console.log(`ตรวจหวย พร้อมทำงานที่พอร์ต ${PORT}`));
     })
     .catch((e) => {
