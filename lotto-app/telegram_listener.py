@@ -14,11 +14,11 @@ from telethon import TelegramClient, events
 import requests
 
 # ---- ตั้งค่า (ใส่ค่าของคุณ) ----
-API_ID       = 0                 # API ID (ตัวเลข)
-API_HASH     = "ใส่ API HASH"     # API Hash
-GROUP_ID     = -1000000000000     # chat id ของกลุ่มแจ้งผลหวย
-INGEST_URL   = "https://<โดเมนของคุณ>.up.railway.app/api/ingest"
-INGEST_TOKEN = "ใส่ INGEST_TOKEN ให้ตรงกับที่ตั้งใน Railway"
+API_ID       = 33455540                 # API ID (ตัวเลข)
+API_HASH     = "71640a5bfb56b63818e440849d14fc47"     # API Hash
+GROUP_ID     = -5133425639     # chat id ของกลุ่มแจ้งผลหวย
+INGEST_URL   = "https://lottoapp-production.up.railway.app/api/ingest""
+INGEST_TOKEN = "lotto-ingest-9Kx2mPq7vT3w"
 
 client = TelegramClient("lotto_listener", API_ID, API_HASH)
 
