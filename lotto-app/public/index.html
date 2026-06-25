@@ -3,18 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ตรวจหวย — ผลสลากกินแบ่งรัฐบาล สด ทุกงวด</title>
-  <meta name="description" content="ตรวจหวยงวดล่าสุด รายงานผลสดระหว่างถ่ายทอด กรอกเลขสลากเช็คได้หลายใบ พร้อมสถิติย้อนหลังและแจ้งเตือนผ่าน Telegram" />
+  <title>ตรวจหวย — สลากกินแบ่งรัฐบาล หวยลาว ฮานอย หุ้น สด ทุกงวด</title>
+  <meta name="description" content="ตรวจหวยทุกประเภท สลากกินแบ่งรัฐบาล หวยลาว หวยฮานอย หวยหุ้น รายงานผลสด กรอกเลขเช็คได้หลายใบ พร้อมสถิติย้อนหลังและแจ้งเตือน Telegram" />
   <meta name="theme-color" content="#0c8a63" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <header class="site-head">
     <div class="wrap">
-      <a class="brand" href="/">
-        <span class="logo">฿</span>
-        <b>ตรวจหวย<small>สลากกินแบ่งรัฐบาล</small></b>
-      </a>
+      <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>ทุกประเภท</small></b></a>
       <nav class="nav">
         <a href="/" aria-current="page">ตรวจหวย</a>
         <a href="/stats">สถิติ</a>
@@ -24,39 +21,26 @@
   </header>
 
   <main class="wrap">
-    <p class="eyebrow">ผลออกรางวัลงวดล่าสุด</p>
+    <div class="lottery-pick">
+      <label for="lottery-select">เลือกประเภทหวย</label>
+      <select id="lottery-select"></select>
+      <span class="lottery-sched" id="lottery-sched"></span>
+    </div>
 
+    <p class="eyebrow" id="result-eyebrow">ผลออกรางวัลงวดล่าสุด</p>
     <section class="hero" id="hero">
       <div class="hero-top">
-        <div class="draw-date">
-          <span id="draw-date" class="skeleton">งวดวันที่ —————</span>
-          <small id="draw-status"></small>
-        </div>
+        <div class="draw-date"><span id="draw-date" class="skeleton">งวดวันที่ —————</span><small id="draw-status"></small></div>
         <span class="live-badge" id="live-badge"><span class="live-dot"></span> กำลังออกรางวัล</span>
       </div>
-
-      <div class="first-prize">
-        <div class="label">รางวัลที่ 1</div>
-        <div class="big num" id="p-first">——————</div>
-        <span class="reward">รางวัลละ 6,000,000 บาท</span>
-      </div>
-
-      <div class="mini-grid">
-        <div class="mini"><div class="k">เลขหน้า 3 ตัว</div><div class="v num" id="p-front3">—</div></div>
-        <div class="mini"><div class="k">เลขท้าย 3 ตัว</div><div class="v num" id="p-back3">—</div></div>
-        <div class="mini"><div class="k">เลขท้าย 2 ตัว</div><div class="v num" id="p-back2">—</div></div>
-        <div class="mini"><div class="k">ข้างเคียงรางวัลที่ 1</div><div class="v num" id="p-near1">—</div></div>
-      </div>
-
-      <button class="more-toggle" id="more-toggle" aria-expanded="false">ดูรางวัลที่ 2–5 ทั้งหมด</button>
-      <div class="more-list" id="more-list"></div>
+      <div id="hero-body"></div>
     </section>
 
-    <p class="eyebrow">เช็คสลากของคุณ</p>
+    <p class="eyebrow">เช็คเลขของคุณ</p>
     <section class="card">
       <div class="field-row">
         <div class="field">
-          <label for="numbers">หมายเลขสลาก (กรอกได้หลายใบ เว้นวรรคหรือขึ้นบรรทัดใหม่)</label>
+          <label for="numbers">หมายเลข (กรอกได้หลายชุด เว้นวรรคหรือขึ้นบรรทัดใหม่)</label>
           <textarea id="numbers" rows="3" placeholder="097863&#10;123456"></textarea>
         </div>
         <div class="field" style="flex:0 1 180px">
@@ -68,33 +52,29 @@
         <button class="btn btn-primary" id="check-btn">ตรวจรางวัล</button>
         <button class="btn btn-ghost" id="clear-btn">ล้าง</button>
       </div>
-      <p class="hint">เราสนับสนุนการซื้อสลากกินแบ่งรัฐบาลอย่างถูกกฎหมายเท่านั้น</p>
+      <p class="hint">เราสนับสนุนการเล่นอย่างถูกกฎหมายและมีความรับผิดชอบเท่านั้น</p>
       <div class="results" id="results"></div>
     </section>
 
     <section class="section-gap" id="subscribe">
       <p class="eyebrow">แจ้งเตือนอัตโนมัติ</p>
       <h2 class="h-section">เฝ้าเลขไว้ พอหวยออกให้บอททักเลย</h2>
-      <div class="card tg-card">
-        <div class="body">
-          <p>เปิดบอทใน Telegram แล้วพิมพ์เลขที่คุณลุ้นไว้ ทันทีที่เราประกาศผล (สดจากไลฟ์) บอทจะเช็คให้อัตโนมัติและทักหาคุณถ้าถูกรางวัล</p>
-          <ul class="clean">
-            <li><span class="cmd">/watch 123456</span> &nbsp; เฝ้าเลขสลาก 6 หลัก</li>
-            <li><span class="cmd">/watch2 45</span> &nbsp; เฝ้าเลขท้าย 2 ตัว</li>
-            <li><span class="cmd">/list</span> ดูเลขที่เฝ้า &nbsp;·&nbsp; <span class="cmd">/stop</span> ลบทั้งหมด</li>
-          </ul>
-          <p class="note" style="margin-top:14px" id="tg-link-note"></p>
-        </div>
-      </div>
+      <div class="card tg-card"><div class="body">
+        <p>เปิดบอทใน Telegram พิมพ์เลขที่ลุ้นไว้ ทันทีที่เราประกาศผล (สดจากไลฟ์) บอทจะเช็คให้อัตโนมัติและทักถ้าถูกรางวัล</p>
+        <ul class="clean">
+          <li><span class="cmd">/watch 123456</span> &nbsp; เฝ้าเลข 6 หลัก</li>
+          <li><span class="cmd">/watch2 45</span> &nbsp; เฝ้าเลขท้าย 2 ตัว</li>
+          <li><span class="cmd">/list</span> ดูเลขที่เฝ้า &nbsp;·&nbsp; <span class="cmd">/stop</span> ลบทั้งหมด</li>
+        </ul>
+        <p class="note" style="margin-top:14px" id="tg-link-note"></p>
+      </div></div>
     </section>
   </main>
 
-  <footer class="site-foot">
-    <div class="wrap">
-      <span class="note">ผลรางวัลเป็นข้อเท็จจริงสาธารณะ • ยึดผลทางการจากสำนักงานสลากกินแบ่งรัฐบาล</span>
-      <span class="note">ตรวจสอบกับใบตรวจหวยทุกครั้งก่อนขึ้นเงิน</span>
-    </div>
-  </footer>
+  <footer class="site-foot"><div class="wrap">
+    <span class="note">ผลรางวัลเป็นข้อเท็จจริงสาธารณะ • ตรวจสอบกับใบ/แหล่งทางการทุกครั้งก่อนขึ้นเงิน</span>
+    <span class="note">สถิติย้อนหลังเพื่อการศึกษา ไม่สามารถใช้ทำนายผลได้</span>
+  </div></footer>
 
   <script src="/app.js"></script>
 </body>

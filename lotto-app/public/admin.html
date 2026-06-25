@@ -8,45 +8,58 @@
   <style>
     .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .full { grid-column:1/-1; }
-    textarea.small { min-height:64px; }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
-    #log { font-family:var(--mono); font-size:.82rem; white-space:pre-wrap; margin-top:16px; color:var(--ink-70); }
+    textarea.small { min-height:60px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+    #log { font-family:var(--tnum); font-size:.82rem; white-space:pre-wrap; margin-top:16px; color:var(--muted); }
     @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
   <header class="site-head">
-    <div class="wrap"><a class="brand" href="/"><b>ตรวจหวย</b><span>แผงควบคุม</span></a>
+    <div class="wrap"><a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>แผงควบคุม</small></b></a>
       <nav class="nav"><a href="/">หน้าเว็บ</a></nav></div>
   </header>
 
   <main class="wrap">
     <p class="eyebrow">กรอกผลระหว่างถ่ายทอดสด</p>
     <h1 class="h-section" style="font-size:1.3rem">แผงกรอกผลสด</h1>
-    <p class="note" style="margin-bottom:20px">กรอกแต่ละรางวัลตอนประกาศบนไลฟ์ แล้วกด “บันทึก & รายงานสด” ผู้ชมจะเห็นเลขอัปเดตทันที เมื่อครบทุกรางวัลกด “ประกาศผลทางการ” เพื่อส่งแจ้งเตือน Telegram</p>
+    <p class="note" style="margin-bottom:20px">เลือกประเภทหวย กรอกผลแล้วกด “บันทึก & รายงานสด” ผู้ชมเห็นทันที เมื่อครบกด “ประกาศผลทางการ” เพื่อส่งแจ้งเตือน</p>
 
-    <section class="panel">
-      <div class="field" style="margin-bottom:14px">
-        <label>รหัสผ่านแอดมิน (ADMIN_TOKEN)</label>
-        <input id="token" type="password" placeholder="วางโทเคน" class="lbl-display" />
+    <section class="card">
+      <div class="row2" style="margin-bottom:14px">
+        <div class="field"><label>รหัสผ่านแอดมิน (ADMIN_TOKEN)</label><input id="token" type="password" placeholder="วางโทเคน" /></div>
+        <div class="field"><label>ประเภทหวย</label><select id="lottery"></select></div>
+        <div class="field"><label>วันที่งวด</label><input id="date" type="date" /></div>
       </div>
-      <div class="row2">
-        <div class="field"><label>วันที่งวด</label><input id="date" type="date" class="lbl-display" /></div>
-        <div class="field"><label>รางวัลที่ 1 (6 หลัก)</label><input id="first" inputmode="numeric" maxlength="6" /></div>
-        <div class="field"><label>เลขท้าย 2 ตัว</label><input id="back2" inputmode="numeric" maxlength="2" /></div>
-        <div class="field"><label>ข้างเคียงรางวัลที่ 1 (คั่นด้วยช่องว่าง)</label><input id="near1" /></div>
-        <div class="field"><label>เลขหน้า 3 ตัว</label><input id="front3" placeholder="290 742" /></div>
-        <div class="field"><label>เลขท้าย 3 ตัว</label><input id="back3" placeholder="339 881" /></div>
-        <div class="field full"><label>รางวัลที่ 2 (5 เลข)</label><textarea id="second" class="small"></textarea></div>
-        <div class="field full"><label>รางวัลที่ 3 (10 เลข)</label><textarea id="third" class="small"></textarea></div>
-        <div class="field full"><label>รางวัลที่ 4 (50 เลข)</label><textarea id="fourth" class="small"></textarea></div>
-        <div class="field full"><label>รางวัลที่ 5 (100 เลข)</label><textarea id="fifth" class="small"></textarea></div>
+
+      <div id="form-government">
+        <div class="row2">
+          <div class="field"><label>รางวัลที่ 1 (6 หลัก)</label><input id="first" inputmode="numeric" maxlength="6" /></div>
+          <div class="field"><label>เลขท้าย 2 ตัว</label><input id="back2" inputmode="numeric" maxlength="2" /></div>
+          <div class="field"><label>ข้างเคียงรางวัลที่ 1</label><input id="near1" placeholder="097862 097864" /></div>
+          <div class="field"><label>เลขหน้า 3 ตัว</label><input id="front3" placeholder="290 742" /></div>
+          <div class="field"><label>เลขท้าย 3 ตัว</label><input id="back3" placeholder="339 881" /></div>
+          <div class="field"></div>
+          <div class="field full"><label>รางวัลที่ 2 (5 เลข)</label><textarea id="second" class="small"></textarea></div>
+          <div class="field full"><label>รางวัลที่ 3 (10 เลข)</label><textarea id="third" class="small"></textarea></div>
+          <div class="field full"><label>รางวัลที่ 4 (50 เลข)</label><textarea id="fourth" class="small"></textarea></div>
+          <div class="field full"><label>รางวัลที่ 5 (100 เลข)</label><textarea id="fifth" class="small"></textarea></div>
+        </div>
       </div>
+
+      <div id="form-simple" style="display:none">
+        <div class="row2">
+          <div class="field"><label>3 ตัวบน</label><input id="top3" inputmode="numeric" maxlength="3" placeholder="789" /></div>
+          <div class="field"><label>2 ตัวล่าง</label><input id="bottom2" inputmode="numeric" maxlength="2" placeholder="45" /></div>
+        </div>
+        <p class="note">2 ตัวบน คำนวณจาก 3 ตัวบนให้อัตโนมัติ</p>
+      </div>
+
       <div class="actions">
-        <button class="btn" id="save">บันทึก &amp; รายงานสด</button>
-        <button class="btn" id="publish" style="background:var(--gold);border-color:var(--gold);color:#3a2c00">ประกาศผลทางการ (แจ้งเตือน)</button>
-        <button class="btn ghost" id="sync">ดึงจาก API ทางการ</button>
-        <button class="btn ghost" id="load">โหลดงวดนี้มาแก้</button>
+        <button class="btn btn-primary" id="save">บันทึก &amp; รายงานสด</button>
+        <button class="btn" id="publish" style="background:var(--gold);color:#3a2c00">ประกาศผลทางการ (แจ้งเตือน)</button>
+        <button class="btn btn-ghost" id="sync">ดึงผลรัฐบาลจาก API</button>
+        <button class="btn btn-ghost" id="load">โหลดงวดนี้มาแก้</button>
       </div>
       <div id="log"></div>
     </section>
@@ -54,59 +67,57 @@
 
   <script>
     const $ = (id) => document.getElementById(id);
-    const log = (m) => { $('log').textContent = (new Date()).toLocaleTimeString('th-TH') + '  ' + m + '\n' + $('log').textContent; };
+    const log = (m) => { $('log').textContent = new Date().toLocaleTimeString('th-TH')+'  '+m+'\n'+$('log').textContent; };
     if (sessionStorage.token) $('token').value = sessionStorage.token;
-    const arr = (s) => (s || '').trim().split(/[\s,]+/).filter(Boolean);
+    const arr = (s) => (s||'').trim().split(/[\s,]+/).filter(Boolean);
+    let KIND = {};
+
+    (async () => {
+      const { all } = await (await fetch('/api/lotteries')).json();
+      const sel = $('lottery');
+      const { groups } = await (await fetch('/api/lotteries')).json();
+      sel.innerHTML = groups.map(g=>`<optgroup label="${g.category}">${g.items.map(i=>`<option value="${i.code}">${i.name}</option>`).join('')}</optgroup>`).join('');
+      all.forEach(l => KIND[l.code]=l.kind);
+      sel.addEventListener('change', applyKind);
+      applyKind();
+    })();
+
+    function applyKind() {
+      const gov = KIND[$('lottery').value] === 'government';
+      $('form-government').style.display = gov ? '' : 'none';
+      $('form-simple').style.display = gov ? 'none' : '';
+    }
 
     function collect() {
-      return {
-        first: $('first').value.replace(/\D/g,''),
-        back2: $('back2').value.replace(/\D/g,''),
-        near1: arr($('near1').value),
-        front3: arr($('front3').value),
-        back3: arr($('back3').value),
-        second: arr($('second').value),
-        third: arr($('third').value),
-        fourth: arr($('fourth').value),
-        fifth: arr($('fifth').value),
-      };
+      if (KIND[$('lottery').value] === 'government') {
+        return { first:$('first').value.replace(/\D/g,''), back2:$('back2').value.replace(/\D/g,''),
+          near1:arr($('near1').value), front3:arr($('front3').value), back3:arr($('back3').value),
+          second:arr($('second').value), third:arr($('third').value), fourth:arr($('fourth').value), fifth:arr($('fifth').value) };
+      }
+      return { top3:$('top3').value.replace(/\D/g,''), bottom2:$('bottom2').value.replace(/\D/g,'') };
+    }
+    function fill(d) {
+      $('first').value=d.first||''; $('back2').value=d.back2||''; $('near1').value=(d.near1||[]).join(' ');
+      $('front3').value=(d.front3||[]).join(' '); $('back3').value=(d.back3||[]).join(' ');
+      $('second').value=(d.second||[]).join(' '); $('third').value=(d.third||[]).join(' ');
+      $('fourth').value=(d.fourth||[]).join(' '); $('fifth').value=(d.fifth||[]).join(' ');
+      $('top3').value=d.top3||''; $('bottom2').value=d.bottom2||'';
     }
     async function post(url, body) {
-      const token = $('token').value.trim();
-      sessionStorage.token = token;
-      const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify(body) });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || r.status);
-      return d;
+      const token=$('token').value.trim(); sessionStorage.token=token;
+      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
+      const d=await r.json(); if(!r.ok) throw new Error(d.error||r.status); return d;
     }
-    function fill(draw) {
-      $('first').value=draw.first||''; $('back2').value=draw.back2||'';
-      $('near1').value=(draw.near1||[]).join(' '); $('front3').value=(draw.front3||[]).join(' ');
-      $('back3').value=(draw.back3||[]).join(' '); $('second').value=(draw.second||[]).join(' ');
-      $('third').value=(draw.third||[]).join(' '); $('fourth').value=(draw.fourth||[]).join(' ');
-      $('fifth').value=(draw.fifth||[]).join(' ');
-    }
+    const lottery = () => $('lottery').value;
 
-    $('save').onclick = async () => {
-      const date = $('date').value; if (!date) return log('กรุณาเลือกวันที่');
-      try { const d = await post('/api/admin/draw', { date, patch: collect(), final:false }); log('บันทึก & รายงานสดแล้ว ✓'); }
-      catch(e){ log('ผิดพลาด: '+e.message); }
-    };
-    $('publish').onclick = async () => {
-      const date = $('date').value; if (!date) return log('กรุณาเลือกวันที่');
-      if (!confirm('ประกาศผลทางการและส่งแจ้งเตือนผู้ที่เฝ้าเลขไว้?')) return;
-      try { await post('/api/admin/draw', { date, patch: collect(), final:true }); log('ประกาศผลทางการ + ส่งแจ้งเตือนแล้ว ✓'); }
-      catch(e){ log('ผิดพลาด: '+e.message); }
-    };
-    $('sync').onclick = async () => {
-      try { const d = await post('/api/admin/sync', {}); fill(d.draw); $('date').value=d.draw.date; log('ดึงจาก '+d.source+' สำเร็จ ✓'); }
-      catch(e){ log('ดึงไม่สำเร็จ: '+e.message); }
-    };
-    $('load').onclick = async () => {
-      const date = $('date').value; if (!date) return log('กรุณาเลือกวันที่');
-      try { const r = await fetch('/api/draw/'+date); const d = await r.json(); if(!r.ok) throw new Error(d.error); fill(d.draw); log('โหลดงวด '+date+' แล้ว'); }
-      catch(e){ log('โหลดไม่ได้: '+e.message); }
-    };
+    $('save').onclick = async () => { const date=$('date').value; if(!date) return log('เลือกวันที่ก่อน');
+      try { await post('/api/admin/draw',{lottery:lottery(),date,patch:collect(),final:false}); log('บันทึก & รายงานสดแล้ว ✓'); } catch(e){ log('ผิดพลาด: '+e.message); } };
+    $('publish').onclick = async () => { const date=$('date').value; if(!date) return log('เลือกวันที่ก่อน');
+      if(!confirm('ประกาศผลทางการและส่งแจ้งเตือน?')) return;
+      try { await post('/api/admin/draw',{lottery:lottery(),date,patch:collect(),final:true}); log('ประกาศผล + แจ้งเตือนแล้ว ✓'); } catch(e){ log('ผิดพลาด: '+e.message); } };
+    $('sync').onclick = async () => { try { const d=await post('/api/admin/sync',{}); $('lottery').value='government'; applyKind(); fill(d.draw); $('date').value=d.draw.date; log('ดึงจาก '+d.source+' สำเร็จ ✓'); } catch(e){ log('ดึงไม่สำเร็จ: '+e.message); } };
+    $('load').onclick = async () => { const date=$('date').value; if(!date) return log('เลือกวันที่ก่อน');
+      try { const r=await fetch('/api/draw/'+date+'?lottery='+lottery()); const d=await r.json(); if(!r.ok) throw new Error(d.error); fill(d.draw); log('โหลดงวด '+date+' แล้ว'); } catch(e){ log('โหลดไม่ได้: '+e.message); } };
   </script>
 </body>
 </html>

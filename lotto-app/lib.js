@@ -96,6 +96,71 @@ export function checkTicket(ticket, draw) {
   return wins;
 }
 
+// Check a ticket against a SIMPLE draw (3 ตัวบน + 2 ตัวล่าง). No baht amounts
+// since payout rates vary by operator — we report which prizes hit.
+export function checkSimple(ticket, draw) {
+  const n = String(ticket).replace(/\D/g, '');
+  const wins = [];
+  if (!draw) return wins;
+  if (draw.top3 && n.length >= 3 && n.slice(-3) === draw.top3) wins.push({ key: 'top3', label: '3 ตัวบน' });
+  if (draw.top3 && n.length >= 2 && n.slice(-2) === draw.top3.slice(-2)) wins.push({ key: 'top2', label: '2 ตัวบน' });
+  if (draw.bottom2 && n.length >= 2 && n.slice(-2) === draw.bottom2) wins.push({ key: 'bottom2', label: '2 ตัวล่าง' });
+  return wins;
+}
+
+// Frequency stats for simple-lottery draws.
+export function computeSimpleStats(draws, recentWindow = 30) {
+  const top2 = {};
+  const bottom2 = {};
+  const top3 = {};
+  for (const d of draws) {
+    if (d.top3) {
+      top3[d.top3] = (top3[d.top3] || 0) + 1;
+      const t2 = d.top3.slice(-2);
+      top2[t2] = (top2[t2] || 0) + 1;
+    }
+    if (d.bottom2) bottom2[d.bottom2] = (bottom2[d.bottom2] || 0) + 1;
+  }
+  const top = (obj, k = 12) =>
+    Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, k).map(([value, count]) => ({ value, count }));
+  return {
+    totalDraws: draws.length,
+    range: draws.length ? { from: draws[0].date, to: draws[draws.length - 1].date } : null,
+    top2Top: top(top2),
+    bottom2Top: top(bottom2),
+    top3Top: top(top3, 10),
+  };
+}
+
+// Per-number history across government draws — powers SEO number pages.
+// Returns occurrences for a 2- or 3-digit number across the relevant prize roles.
+export function numberHistory(n, draws) {
+  const num = String(n).replace(/\D/g, '');
+  const len = num.length;
+  const hits = []; // {date, role}
+  for (const d of draws) {
+    if (len === 2) {
+      if (d.back2 === num) hits.push({ date: d.date, role: 'เลขท้าย 2 ตัว' });
+      if (d.first && d.first.slice(-2) === num) hits.push({ date: d.date, role: '2 ตัวท้ายรางวัลที่ 1' });
+    } else if (len === 3) {
+      if ((d.front3 || []).includes(num)) hits.push({ date: d.date, role: 'เลขหน้า 3 ตัว' });
+      if ((d.back3 || []).includes(num)) hits.push({ date: d.date, role: 'เลขท้าย 3 ตัว' });
+      if (d.first && d.first.slice(-3) === num) hits.push({ date: d.date, role: '3 ตัวท้ายรางวัลที่ 1' });
+    }
+  }
+  hits.sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
+  const byRole = {};
+  for (const h of hits) byRole[h.role] = (byRole[h.role] || 0) + 1;
+  return {
+    number: num,
+    length: len,
+    total: hits.length,
+    byRole,
+    lastDate: hits[0]?.date || null,
+    hits: hits.slice(0, 30),
+  };
+}
+
 // Build frequency stats from an array of canonical draws.
 // `recentWindow` limits hot/cold to the most recent N draws (draws must be sorted ascending).
 export function computeStats(draws, recentWindow = 24) {

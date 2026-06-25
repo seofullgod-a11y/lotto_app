@@ -143,3 +143,10 @@ ul.clean li { padding: 10px 14px; background: var(--surface-2); border-radius: v
   .res .detail { text-align: left; }
 }
 @media (prefers-reduced-motion: reduce) { .live-dot, .skeleton, .btn-primary { animation: none; transition: none; } }
+
+/* ---- lottery picker ---- */
+.lottery-pick { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 26px; padding: 16px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+.lottery-pick label { margin: 0; white-space: nowrap; }
+.lottery-pick select { flex: 1 1 220px; font-family: var(--display); font-size: 1.05rem; font-weight: 500; padding: 11px 14px; cursor: pointer; }
+.lottery-sched { font-size: .82rem; color: var(--jade-deep); font-family: var(--display); background: var(--surface-2); padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+@media (max-width: 560px) { .lottery-pick { padding: 14px; } .lottery-sched { order: 3; } }

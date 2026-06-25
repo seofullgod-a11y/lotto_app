@@ -6,7 +6,9 @@ import pg from 'pg';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-import { checkTicket, computeStats, isoToThaiDate, PRIZE } from './lib.js';
+import { checkTicket, checkSimple, computeStats, computeSimpleStats, numberHistory, isoToThaiDate, PRIZE } from './lib.js';
+import { LOTTERIES, getLottery, isValidLottery, lotteryKind, lotteriesByCategory, blankDraw } from './lotteries.js';
+import { renderNumberPage, renderSitemap } from './seo.js';
 import { syncLatest } from './sources.js';
 import { startBot, notifyDraw } from './telegram.js';
 
@@ -24,49 +26,73 @@ app.use(express.static(path.join(__dirname, 'public')));
 async function initDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS draws (
-      date  DATE PRIMARY KEY,
+      lottery TEXT NOT NULL DEFAULT 'government',
+      date  DATE NOT NULL,
       data  JSONB NOT NULL,
-      updated_at TIMESTAMPTZ DEFAULT now()
+      updated_at TIMESTAMPTZ DEFAULT now(),
+      PRIMARY KEY (lottery, date)
     );
     CREATE TABLE IF NOT EXISTS subscriptions (
       id      SERIAL PRIMARY KEY,
       chat_id BIGINT NOT NULL,
+      lottery TEXT NOT NULL DEFAULT 'government',
       kind    TEXT   NOT NULL,
       value   TEXT   NOT NULL,
       created_at TIMESTAMPTZ DEFAULT now(),
-      UNIQUE (chat_id, kind, value)
+      UNIQUE (chat_id, lottery, kind, value)
     );
   `);
+  // Migrate older single-lottery deployments (PK was on date alone). Each step
+  // is best-effort so it is harmless on already-migrated / fresh databases.
+  for (const sql of [
+    `ALTER TABLE draws ADD COLUMN IF NOT EXISTS lottery TEXT NOT NULL DEFAULT 'government'`,
+    `ALTER TABLE draws DROP CONSTRAINT IF EXISTS draws_pkey`,
+    `ALTER TABLE draws ADD PRIMARY KEY (lottery, date)`,
+    `ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS lottery TEXT NOT NULL DEFAULT 'government'`,
+  ]) {
+    try { await pool.query(sql); } catch { /* already applied */ }
+  }
 }
 
-async function getDraw(date) {
-  const { rows } = await pool.query('SELECT data FROM draws WHERE date=$1', [date]);
+async function getDraw(lottery, date) {
+  const { rows } = await pool.query('SELECT data FROM draws WHERE lottery=$1 AND date=$2', [lottery, date]);
   return rows[0]?.data || null;
 }
-async function getLatest() {
-  const { rows } = await pool.query('SELECT data FROM draws ORDER BY date DESC LIMIT 1');
+async function getLatest(lottery) {
+  const { rows } = await pool.query('SELECT data FROM draws WHERE lottery=$1 ORDER BY date DESC LIMIT 1', [lottery]);
   return rows[0]?.data || null;
 }
-async function listDates(limit = 60) {
-  const { rows } = await pool.query('SELECT date FROM draws ORDER BY date DESC LIMIT $1', [limit]);
+async function listDates(lottery, limit = 120) {
+  const { rows } = await pool.query('SELECT date FROM draws WHERE lottery=$1 ORDER BY date DESC LIMIT $2', [lottery, limit]);
   return rows.map((r) => (r.date instanceof Date ? r.date.toISOString().slice(0, 10) : String(r.date).slice(0, 10)));
 }
-async function upsertDraw(draw) {
+async function allDraws(lottery) {
+  const { rows } = await pool.query('SELECT data FROM draws WHERE lottery=$1 ORDER BY date ASC', [lottery]);
+  return rows.map((r) => r.data);
+}
+async function upsertDraw(lottery, draw) {
   await pool.query(
-    `INSERT INTO draws(date, data, updated_at) VALUES($1,$2,now())
-     ON CONFLICT (date) DO UPDATE SET data=$2, updated_at=now()`,
-    [draw.date, draw]
+    `INSERT INTO draws(lottery, date, data, updated_at) VALUES($1,$2,$3,now())
+     ON CONFLICT (lottery, date) DO UPDATE SET data=$3, updated_at=now()`,
+    [lottery, draw.date, draw]
   );
 }
 
-// --- stats cache ----------------------------------------------------------
-let statsCache = { at: 0, data: null };
-async function getStats() {
-  if (statsCache.data && Date.now() - statsCache.at < 60_000) return statsCache.data;
-  const { rows } = await pool.query('SELECT data FROM draws ORDER BY date ASC');
-  const draws = rows.map((r) => r.data);
-  const data = computeStats(draws, 24);
-  statsCache = { at: Date.now(), data };
+// resolve ?lottery= (default government), 400 if unknown
+function lotteryOf(req) {
+  const code = (req.query.lottery || req.body?.lottery || 'government').toString();
+  return isValidLottery(code) ? code : null;
+}
+
+// --- stats cache (per lottery) -------------------------------------------
+const statsCache = new Map(); // lottery -> { at, data }
+function bustStats(lottery) { statsCache.delete(lottery); }
+async function getStats(lottery) {
+  const c = statsCache.get(lottery);
+  if (c && Date.now() - c.at < 60_000) return c.data;
+  const draws = await allDraws(lottery);
+  const data = lotteryKind(lottery) === 'government' ? computeStats(draws, 24) : computeSimpleStats(draws, 30);
+  statsCache.set(lottery, { at: Date.now(), data });
   return data;
 }
 
@@ -96,39 +122,54 @@ app.get('/api/stream', (req, res) => {
 const apiLimiter = rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false });
 app.use('/api/', apiLimiter);
 
+app.get('/api/lotteries', (req, res) => {
+  res.json({ groups: lotteriesByCategory(), all: LOTTERIES });
+});
+
 app.get('/api/latest', async (req, res) => {
-  const draw = await getLatest();
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  const draw = await getLatest(lottery);
   if (!draw) return res.status(404).json({ error: 'ยังไม่มีข้อมูลงวดล่าสุด' });
-  res.json({ draw, thaiDate: isoToThaiDate(draw.date) });
+  res.json({ lottery, kind: lotteryKind(lottery), draw, thaiDate: isoToThaiDate(draw.date) });
 });
 
 app.get('/api/draw/:date', async (req, res) => {
-  const draw = await getDraw(req.params.date);
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  const draw = await getDraw(lottery, req.params.date);
   if (!draw) return res.status(404).json({ error: 'ไม่พบงวดนี้' });
-  res.json({ draw, thaiDate: isoToThaiDate(draw.date) });
+  res.json({ lottery, kind: lotteryKind(lottery), draw, thaiDate: isoToThaiDate(draw.date) });
 });
 
 app.get('/api/draws', async (req, res) => {
-  const dates = await listDates(120);
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  const dates = await listDates(lottery);
   res.json({ dates: dates.map((d) => ({ date: d, thaiDate: isoToThaiDate(d) })) });
 });
 
 const checkLimiter = rateLimit({ windowMs: 60_000, max: 30, standardHeaders: true, legacyHeaders: false });
 app.get('/api/check', checkLimiter, async (req, res) => {
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
   const date = (req.query.date || 'latest').toString();
   const numbers = (req.query.numbers || '').toString().split(',').map((s) => s.replace(/\D/g, '')).filter(Boolean).slice(0, 20);
-  if (!numbers.length) return res.status(400).json({ error: 'กรุณากรอกหมายเลขสลาก' });
-  const draw = date === 'latest' ? await getLatest() : await getDraw(date);
+  if (!numbers.length) return res.status(400).json({ error: 'กรุณากรอกหมายเลข' });
+  const draw = date === 'latest' ? await getLatest(lottery) : await getDraw(lottery, date);
   if (!draw) return res.status(404).json({ error: 'ไม่พบงวดที่ระบุ' });
+  const gov = lotteryKind(lottery) === 'government';
   const results = numbers.map((n) => {
-    const wins = checkTicket(n, draw);
-    return { number: n, wins, total: wins.reduce((s, w) => s + w.amount, 0) };
+    const wins = gov ? checkTicket(n, draw) : checkSimple(n, draw);
+    return { number: n, wins, total: gov ? wins.reduce((s, w) => s + w.amount, 0) : 0 };
   });
-  res.json({ date: draw.date, thaiDate: isoToThaiDate(draw.date), results });
+  res.json({ lottery, kind: lotteryKind(lottery), date: draw.date, thaiDate: isoToThaiDate(draw.date), results });
 });
 
 app.get('/api/stats', async (req, res) => {
-  res.json(await getStats());
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  res.json({ lottery, kind: lotteryKind(lottery), ...(await getStats(lottery)) });
 });
 
 // --- admin (live entry) ---------------------------------------------------
@@ -138,30 +179,28 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// Create/patch a draw during the live broadcast. Body: { date, patch, final }
-// `patch` merges into the existing draw (so you can post each prize as it's
-// announced). `final:true` publishes -> fires Telegram notifications.
+// Create/patch a draw during the live broadcast. Body: { lottery, date, patch, final }
 app.post('/api/admin/draw', requireAdmin, async (req, res) => {
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
   const { date, patch, final } = req.body || {};
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'date ต้องเป็น YYYY-MM-DD' });
-  const existing = (await getDraw(date)) || {
-    date, first: '', near1: [], front3: [], back3: [], back2: '', second: [], third: [], fourth: [], fifth: [],
-  };
+  const existing = (await getDraw(lottery, date)) || blankDraw(lotteryKind(lottery), date);
   const draw = { ...existing, ...(patch || {}), date };
-  await upsertDraw(draw);
-  statsCache = { at: 0, data: null };
-  broadcast('draw', { draw, thaiDate: isoToThaiDate(draw.date), final: !!final });
-  if (final) notifyDraw(pool, draw).catch((e) => console.error('[notify]', e.message));
-  res.json({ ok: true, draw });
+  await upsertDraw(lottery, draw);
+  bustStats(lottery);
+  broadcast('draw', { lottery, kind: lotteryKind(lottery), draw, thaiDate: isoToThaiDate(draw.date), final: !!final });
+  if (final) notifyDraw(pool, lottery, draw).catch((e) => console.error('[notify]', e.message));
+  res.json({ ok: true, lottery, draw });
 });
 
-// Pull latest from public APIs into the DB (backfill / verification).
+// Pull latest GLO result (government only) from public APIs.
 app.post('/api/admin/sync', requireAdmin, async (req, res) => {
   try {
     const { draw, source } = await syncLatest();
-    await upsertDraw(draw);
-    statsCache = { at: 0, data: null };
-    broadcast('draw', { draw, thaiDate: isoToThaiDate(draw.date), final: true });
+    await upsertDraw('government', draw);
+    bustStats('government');
+    broadcast('draw', { lottery: 'government', kind: 'government', draw, thaiDate: isoToThaiDate(draw.date), final: true });
     res.json({ ok: true, source, draw });
   } catch (e) {
     res.status(502).json({ error: e.message });
@@ -169,6 +208,34 @@ app.post('/api/admin/sync', requireAdmin, async (req, res) => {
 });
 
 app.get('/api/prize-table', (req, res) => res.json(PRIZE));
+
+// --- SEO: per-number history pages ---------------------------------------
+const BASE_URL = (process.env.BASE_URL || '').replace(/\/$/, '');
+const baseFrom = (req) => BASE_URL || `${req.protocol}://${req.get('host')}`;
+
+app.get('/huay/:n', async (req, res) => {
+  const n = (req.params.n || '').replace(/\D/g, '');
+  if (n.length !== 2 && n.length !== 3) return res.status(404).send('ไม่พบหน้านี้');
+  const draws = await allDraws('government');
+  const hist = numberHistory(n, draws);
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(renderNumberPage(hist, baseFrom(req)));
+});
+
+app.get('/sitemap.xml', async (req, res) => {
+  const draws = await allDraws('government');
+  const three = new Set();
+  for (const d of draws) {
+    for (const x of d.front3 || []) three.add(x);
+    for (const x of d.back3 || []) three.add(x);
+  }
+  res.set('Content-Type', 'application/xml');
+  res.send(renderSitemap(baseFrom(req), [...three].sort()));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(`User-agent: *\nAllow: /\nSitemap: ${baseFrom(req)}/sitemap.xml\n`);
+});
 
 // --- pages ----------------------------------------------------------------
 app.get('/healthz', (req, res) => res.json({ ok: true }));

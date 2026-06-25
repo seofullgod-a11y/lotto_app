@@ -15,16 +15,23 @@ const pool = new pg.Pool({
 async function main() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS draws (
-      date DATE PRIMARY KEY, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT now()
+      lottery TEXT NOT NULL DEFAULT 'government',
+      date DATE NOT NULL, data JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT now(),
+      PRIMARY KEY (lottery, date)
     );`);
+  for (const sql of [
+    `ALTER TABLE draws ADD COLUMN IF NOT EXISTS lottery TEXT NOT NULL DEFAULT 'government'`,
+    `ALTER TABLE draws DROP CONSTRAINT IF EXISTS draws_pkey`,
+    `ALTER TABLE draws ADD PRIMARY KEY (lottery, date)`,
+  ]) { try { await pool.query(sql); } catch { /* ok */ } }
 
   const file = path.join(__dirname, 'seed_draws.json');
   const draws = JSON.parse(fs.readFileSync(file, 'utf-8'));
   let n = 0;
   for (const d of draws) {
     await pool.query(
-      `INSERT INTO draws(date, data) VALUES($1,$2)
-       ON CONFLICT (date) DO UPDATE SET data=$2`,
+      `INSERT INTO draws(lottery, date, data) VALUES('government',$1,$2)
+       ON CONFLICT (lottery, date) DO UPDATE SET data=$2`,
       [d.date, d]
     );
     n++;

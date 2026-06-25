@@ -1,7 +1,7 @@
 // telegram.js — long-polling bot for watch-number alerts. Optional: only
 // starts if TELEGRAM_BOT_TOKEN is set. Reuses the same Postgres pool.
 // ---------------------------------------------------------------------------
-import { checkTicket, isoToThaiDate } from './lib.js';
+import { checkTicket, checkSimple, isoToThaiDate } from './lib.js';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const API = TOKEN ? `https://api.telegram.org/bot${TOKEN}` : null;
@@ -50,8 +50,8 @@ async function handleUpdate(pool, u) {
     const n = (arg || '').replace(/\D/g, '');
     if (n.length !== 6) return void sendMessage(chatId, 'พิมพ์เลข 6 หลัก เช่น /watch 123456');
     await pool.query(
-      `INSERT INTO subscriptions(chat_id, kind, value) VALUES($1,'full',$2)
-       ON CONFLICT (chat_id, kind, value) DO NOTHING`,
+      `INSERT INTO subscriptions(chat_id, lottery, kind, value) VALUES($1,'government','full',$2)
+       ON CONFLICT (chat_id, lottery, kind, value) DO NOTHING`,
       [chatId, n]
     );
     await sendMessage(chatId, `เฝ้าเลข <b>${n}</b> ให้แล้ว ✅`);
@@ -59,8 +59,8 @@ async function handleUpdate(pool, u) {
     const n = (arg || '').replace(/\D/g, '').padStart(2, '0');
     if (n.length !== 2) return void sendMessage(chatId, 'พิมพ์เลข 2 หลัก เช่น /watch2 45');
     await pool.query(
-      `INSERT INTO subscriptions(chat_id, kind, value) VALUES($1,'back2',$2)
-       ON CONFLICT (chat_id, kind, value) DO NOTHING`,
+      `INSERT INTO subscriptions(chat_id, lottery, kind, value) VALUES($1,'government','back2',$2)
+       ON CONFLICT (chat_id, lottery, kind, value) DO NOTHING`,
       [chatId, n]
     );
     await sendMessage(chatId, `เฝ้าเลขท้าย 2 ตัว <b>${n}</b> ให้แล้ว ✅`);
@@ -75,24 +75,27 @@ async function handleUpdate(pool, u) {
   }
 }
 
-// Notify everyone whose watched number wins in this draw.
-export async function notifyDraw(pool, draw) {
+// Notify everyone whose watched number wins in this draw (scoped to lottery).
+export async function notifyDraw(pool, lottery, draw) {
   if (!API) return;
-  const { rows } = await pool.query('SELECT chat_id, kind, value FROM subscriptions');
+  const { rows } = await pool.query('SELECT chat_id, kind, value FROM subscriptions WHERE lottery=$1', [lottery]);
   const thai = isoToThaiDate(draw.date);
+  const gov = !('top3' in draw);
   for (const r of rows) {
     let wins = [];
     if (r.kind === 'back2') {
-      if (draw.back2 && r.value === draw.back2) wins = [{ label: 'เลขท้าย 2 ตัว', amount: 2000 }];
+      const target = gov ? draw.back2 : draw.bottom2;
+      if (target && r.value === target) wins = [{ label: 'เลขท้าย 2 ตัว', amount: gov ? 2000 : 0 }];
     } else {
-      wins = checkTicket(r.value, draw);
+      wins = gov ? checkTicket(r.value, draw) : checkSimple(r.value, draw);
     }
     if (wins.length) {
-      const total = wins.reduce((s, w) => s + w.amount, 0);
-      const lines = wins.map((w) => `• ${w.label} — ${w.amount.toLocaleString('th-TH')} บาท`);
+      const total = wins.reduce((s, w) => s + (w.amount || 0), 0);
+      const lines = wins.map((w) => (w.amount ? `• ${w.label} — ${w.amount.toLocaleString('th-TH')} บาท` : `• ${w.label}`));
+      const totalLine = total ? `\nรวม <b>${total.toLocaleString('th-TH')}</b> บาท` : '';
       await sendMessage(
         r.chat_id,
-        `🎉 <b>เลข ${r.value} ถูกรางวัล!</b>\nงวด ${thai}\n${lines.join('\n')}\nรวม <b>${total.toLocaleString('th-TH')}</b> บาท`
+        `🎉 <b>เลข ${r.value} ถูกรางวัล!</b>\nงวด ${thai}\n${lines.join('\n')}${totalLine}`
       );
     }
   }
