@@ -59,6 +59,7 @@
         <button class="btn btn-primary" id="save">บันทึก &amp; รายงานสด</button>
         <button class="btn" id="publish" style="background:var(--gold);color:#3a2c00">ประกาศผลทางการ (แจ้งเตือน)</button>
         <button class="btn btn-ghost" id="sync">ดึงผลรัฐบาลจาก API</button>
+        <button class="btn btn-ghost" id="sync-providers">ดึงหวยอื่นจาก Provider</button>
         <button class="btn btn-ghost" id="load">โหลดงวดนี้มาแก้</button>
       </div>
       <div id="log"></div>
@@ -142,6 +143,7 @@
       if(!confirm('ประกาศผลทางการและส่งแจ้งเตือน?')) return;
       try { await post('/api/admin/draw',{lottery:lottery(),date,patch:collect(),final:true}); log('ประกาศผล + แจ้งเตือนแล้ว ✓'); } catch(e){ log('ผิดพลาด: '+e.message); } };
     $('sync').onclick = async () => { try { const d=await post('/api/admin/sync',{}); $('lottery').value='government'; applyKind(); fill(d.draw); $('date').value=d.draw.date; log('ดึงจาก '+d.source+' สำเร็จ ✓'); } catch(e){ log('ดึงไม่สำเร็จ: '+e.message); } };
+    $('sync-providers').onclick = async () => { try { const d=await post('/api/admin/sync-providers',{}); log('ดึงหวยอื่นจาก Provider: อัปเดต '+d.updated+' หวย ✓'); } catch(e){ log('ดึงไม่สำเร็จ: '+e.message); } };
     $('load').onclick = async () => { const date=$('date').value; if(!date) return log('เลือกวันที่ก่อน');
       try { const r=await fetch('/api/draw/'+date+'?lottery='+lottery()); const d=await r.json(); if(!r.ok) throw new Error(d.error); fill(d.draw); log('โหลดงวด '+date+' แล้ว'); } catch(e){ log('โหลดไม่ได้: '+e.message); } };
   </script>

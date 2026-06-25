@@ -10,6 +10,7 @@ import { checkTicket, checkSimple, computeStats, computeSimpleStats, numberHisto
 import { LOTTERIES, getLottery, isValidLottery, lotteryKind, lotteriesByCategory, blankDraw } from './lotteries.js';
 import { renderNumberPage, renderLotteryPage, renderSitemap } from './seo.js';
 import { syncLatest } from './sources.js';
+import { getProvider } from './providers.js';
 import { startBot, notifyDraw } from './telegram.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -241,6 +242,17 @@ app.post('/api/admin/sync', requireAdmin, async (req, res) => {
   }
 });
 
+// Pull all simple-lottery results from the configured provider.
+app.post('/api/admin/sync-providers', requireAdmin, async (req, res) => {
+  try {
+    const r = await syncProviders();
+    if (r.disabled) return res.status(400).json({ error: 'ยังไม่ได้ตั้งค่า PROVIDER (เช่น mock หรือ http)' });
+    res.json({ ok: true, ...r });
+  } catch (e) {
+    res.status(502).json({ error: e.message });
+  }
+});
+
 app.get('/api/prize-table', (req, res) => res.json(PRIZE));
 
 // public runtime config (ad client id for the SPA)
@@ -322,7 +334,27 @@ app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sta
     return { source, date: draw.date };
   }
 
-  return { app, initDb, autoSync };
+  // Pull simple-lottery results from the configured paid provider.
+  async function syncProviders() {
+    const provider = getProvider();
+    if (!provider) return { updated: 0, disabled: true };
+    const results = await provider();
+    let updated = 0;
+    for (const r of results) {
+      if (!isValidLottery(r.lottery) || lotteryKind(r.lottery) === 'government') continue;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(r.date)) continue;
+      const existing = await getDraw(r.lottery, r.date);
+      const draw = { date: r.date, top3: r.top3 || '', bottom2: r.bottom2 || '' };
+      await upsertDraw(r.lottery, draw);
+      bustStats(r.lottery);
+      broadcast('draw', { lottery: r.lottery, kind: 'simple', draw, thaiDate: isoToThaiDate(draw.date), final: true });
+      if (!existing) notifyDraw(pool, r.lottery, draw).catch(() => {});
+      updated++;
+    }
+    return { updated };
+  }
+
+  return { app, initDb, autoSync, syncProviders };
 }
 
 // --- boot (only when run directly) ----------------------------------------
@@ -335,7 +367,7 @@ if (isMain) {
     connectionString: url,
     ssl: needsSsl ? { rejectUnauthorized: false } : false,
   });
-  const { app, initDb, autoSync } = createApp(pool);
+  const { app, initDb, autoSync, syncProviders } = createApp(pool);
 
   // Optional scheduled auto-sync for the government result (set AUTO_SYNC=1).
   // Polls every AUTO_SYNC_MINUTES (default 30); GLO updates itself on draw days.
@@ -348,6 +380,18 @@ if (isMain) {
     setTimeout(run, 10_000); // first run shortly after boot
     setInterval(run, mins * 60_000);
     console.log(`[auto-sync] เปิดใช้งาน ทุก ${mins} นาที (เฉพาะหวยรัฐบาล)`);
+  }
+
+  // Optional scheduled provider sync for simple lotteries (set PROVIDER=mock|http).
+  function startProviderSync() {
+    if (!process.env.PROVIDER) return;
+    const mins = Math.max(2, parseInt(process.env.PROVIDER_MINUTES || '10', 10));
+    const run = () => syncProviders()
+      .then((r) => { if (!r.disabled) console.log(`[provider] อัปเดต ${r.updated} หวย`); })
+      .catch((e) => console.error('[provider]', e.message));
+    setTimeout(run, 12_000);
+    setInterval(run, mins * 60_000);
+    console.log(`[provider] เปิดใช้งาน (${process.env.PROVIDER}) ทุก ${mins} นาที`);
   }
 
   // Railway's private network ("*.railway.internal") takes a few seconds to
@@ -371,6 +415,7 @@ if (isMain) {
     .then(() => {
       startBot(pool);
       startAutoSync();
+      startProviderSync();
       app.listen(PORT, () => console.log(`ตรวจหวย พร้อมทำงานที่พอร์ต ${PORT}`));
     })
     .catch((e) => {
