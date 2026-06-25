@@ -5,66 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>สถิติหวยย้อนหลัง — เลขท้าย 2 ตัวออกบ่อย เลขเด็ดย้อนหลัง</title>
   <meta name="description" content="สถิติสลากกินแบ่งรัฐบาลย้อนหลัง เลขท้าย 2 ตัวออกบ่อยที่สุด เลขหน้า-ท้าย 3 ตัว และเลขที่ไม่เคยออก วิเคราะห์จากผลย้อนหลังหลายร้อยงวด" />
+  <meta name="theme-color" content="#0c8a63" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
-    .bar-row { display: grid; grid-template-columns: 56px 1fr 44px; align-items: center; gap: 10px; margin: 7px 0; }
-    .bar-row .lab { font-family: var(--mono); font-weight: 700; font-size: 1.05rem; letter-spacing: .08em; }
-    .bar-track { background: var(--paper-2); border-radius: 999px; height: 14px; overflow: hidden; }
-    .bar-fill { height: 100%; background: var(--ink); border-radius: 999px; }
-    .bar-row .ct { font-size: .82rem; color: var(--ink-45); text-align: right; }
-    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
-    .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip-grid span { font-family: var(--mono); font-weight: 600; background: var(--paper-2); padding: 5px 9px; border-radius: 3px; }
+    .bar-row { display: grid; grid-template-columns: 54px 1fr 42px; align-items: center; gap: 12px; margin: 9px 0; }
+    .bar-row .lab { font-family: var(--tnum); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.06rem; letter-spacing: .06em; }
+    .bar-track { background: var(--surface-2); border-radius: 999px; height: 16px; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--jade-glow), var(--jade)); border-radius: 999px; transition: width .5s ease; }
+    .bar-row .ct { font-size: .82rem; color: var(--muted); text-align: right; font-family: var(--tnum); }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip-grid span { font-family: var(--tnum); font-variant-numeric: tabular-nums; font-weight: 600; background: var(--surface-2); padding: 7px 11px; border-radius: 9px; }
+    .card h2 { margin-top: 0; }
     @media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <header class="site-head">
     <div class="wrap">
-      <a class="brand" href="/"><b>ตรวจหวย</b><span>สลากกินแบ่งรัฐบาล</span></a>
+      <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>สลากกินแบ่งรัฐบาล</small></b></a>
       <nav class="nav">
         <a href="/">ตรวจหวย</a>
-        <a href="/stats" aria-current="page">สถิติย้อนหลัง</a>
-        <a href="/#subscribe">รับแจ้งเตือน</a>
+        <a href="/stats" aria-current="page">สถิติ</a>
+        <a href="/#subscribe">แจ้งเตือน</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
     <p class="eyebrow">วิเคราะห์ย้อนหลัง</p>
-    <h1 class="h-section" style="font-size:1.4rem">สถิติเลขออกหวยย้อนหลัง</h1>
+    <h1 class="h-section" style="font-size:1.5rem">สถิติเลขออกหวยย้อนหลัง</h1>
     <p class="note" id="range" style="margin-bottom:24px">กำลังโหลด…</p>
 
     <div class="cols">
-      <section class="panel">
-        <h2 class="h-section">เลขท้าย 2 ตัว ออกบ่อยที่สุด (ทุกงวด)</h2>
-        <div id="back2-all"></div>
-      </section>
-      <section class="panel">
-        <h2 class="h-section">เลขท้าย 2 ตัว มาแรง (24 งวดล่าสุด)</h2>
-        <div id="back2-recent"></div>
-      </section>
+      <section class="card"><h2 class="h-section">เลขท้าย 2 ตัว ออกบ่อยที่สุด</h2><div id="back2-all"></div></section>
+      <section class="card"><h2 class="h-section">เลขท้าย 2 ตัว มาแรง (24 งวดล่าสุด)</h2><div id="back2-recent"></div></section>
     </div>
 
     <div class="cols section-gap">
-      <section class="panel">
-        <h2 class="h-section">เลขหน้า 3 ตัว ออกบ่อย</h2>
-        <div id="front3"></div>
-      </section>
-      <section class="panel">
-        <h2 class="h-section">เลขท้าย 3 ตัว ออกบ่อย</h2>
-        <div id="back3"></div>
-      </section>
+      <section class="card"><h2 class="h-section">เลขหน้า 3 ตัว ออกบ่อย</h2><div id="front3"></div></section>
+      <section class="card"><h2 class="h-section">เลขท้าย 3 ตัว ออกบ่อย</h2><div id="back3"></div></section>
     </div>
 
-    <section class="panel section-gap">
-      <h2 class="h-section">เลขท้ายของรางวัลที่ 1 ออกเลขอะไรบ่อย</h2>
-      <div id="first-digit"></div>
-    </section>
+    <section class="card section-gap"><h2 class="h-section">เลขท้ายของรางวัลที่ 1 ออกเลขอะไรบ่อย</h2><div id="first-digit"></div></section>
 
-    <section class="panel section-gap">
+    <section class="card section-gap">
       <h2 class="h-section">เลขท้าย 2 ตัวที่ยังไม่เคยออกเลย</h2>
-      <p class="note" style="margin-top:0">จากข้อมูลย้อนหลังที่มี — ใช้ประกอบการตัดสินใจ ไม่ใช่การรับประกันผล</p>
+      <p class="note" style="margin-top:-6px;margin-bottom:14px">จากข้อมูลย้อนหลังที่มี — ใช้ประกอบการตัดสินใจ ไม่ใช่การรับประกันผล</p>
       <div class="chip-grid" id="never-hit"></div>
     </section>
 
@@ -80,20 +67,17 @@
       if (!items || !items.length) { el.innerHTML = '<p class="note">ไม่มีข้อมูล</p>'; return; }
       const max = items[0].count || 1;
       el.innerHTML = items.map((it) => `
-        <div class="bar-row">
-          <span class="lab">${it.value}</span>
+        <div class="bar-row"><span class="lab">${it.value}</span>
           <div class="bar-track"><div class="bar-fill" style="width:${Math.round((it.count/max)*100)}%"></div></div>
-          <span class="ct">${it.count}</span>
-        </div>`).join('');
+          <span class="ct">${it.count}</span></div>`).join('');
     }
     (async () => {
       try {
         const s = await (await fetch('/api/stats')).json();
         if (s.range) $('range').textContent = `วิเคราะห์จาก ${s.totalDraws} งวด • ${thai(s.range.from)} – ${thai(s.range.to)}`;
-        bars($('back2-all'), s.back2Top);
-        bars($('back2-recent'), s.back2Recent);
-        bars($('front3'), s.front3Top);
-        bars($('back3'), s.back3Top);
+        else $('range').textContent = 'ยังไม่มีข้อมูล — รัน npm run seed เพื่อโหลดข้อมูลย้อนหลัง';
+        bars($('back2-all'), s.back2Top); bars($('back2-recent'), s.back2Recent);
+        bars($('front3'), s.front3Top); bars($('back3'), s.back3Top);
         bars($('first-digit'), s.firstLastDigit);
         $('never-hit').innerHTML = (s.neverHitBack2 || []).map((n) => `<span>${n}</span>`).join('') || '<p class="note">ทุกเลขเคยออกแล้ว</p>';
       } catch { $('range').textContent = 'โหลดสถิติไม่สำเร็จ'; }
