@@ -354,7 +354,18 @@ app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sta
     return { updated };
   }
 
-  return { app, initDb, autoSync, syncProviders };
+  // Handle a result parsed from a Telegram group/channel message.
+  async function ingestResult({ lottery, top3, bottom2, date }) {
+    if (!isValidLottery(lottery) || lotteryKind(lottery) === 'government') return;
+    const existing = (await getDraw(lottery, date)) || { date, top3: '', bottom2: '' };
+    const draw = { date, top3: top3 || existing.top3 || '', bottom2: bottom2 || existing.bottom2 || '' };
+    await upsertDraw(lottery, draw);
+    bustStats(lottery);
+    broadcast('draw', { lottery, kind: 'simple', draw, thaiDate: isoToThaiDate(draw.date), final: true });
+    if (!existing.top3 && !existing.bottom2) notifyDraw(pool, lottery, draw).catch(() => {});
+  }
+
+  return { app, initDb, autoSync, syncProviders, ingestResult };
 }
 
 // --- boot (only when run directly) ----------------------------------------
@@ -367,7 +378,7 @@ if (isMain) {
     connectionString: url,
     ssl: needsSsl ? { rejectUnauthorized: false } : false,
   });
-  const { app, initDb, autoSync, syncProviders } = createApp(pool);
+  const { app, initDb, autoSync, syncProviders, ingestResult } = createApp(pool);
 
   // Optional scheduled auto-sync for the government result (set AUTO_SYNC=1).
   // Polls every AUTO_SYNC_MINUTES (default 30); GLO updates itself on draw days.
@@ -413,7 +424,7 @@ if (isMain) {
 
   boot()
     .then(() => {
-      startBot(pool);
+      startBot(pool, ingestResult);
       startAutoSync();
       startProviderSync();
       app.listen(PORT, () => console.log(`ตรวจหวย พร้อมทำงานที่พอร์ต ${PORT}`));

@@ -2,6 +2,19 @@
 // starts if TELEGRAM_BOT_TOKEN is set. Reuses the same Postgres pool.
 // ---------------------------------------------------------------------------
 import { checkTicket, checkSimple, isoToThaiDate } from './lib.js';
+import { buildKeywordMap, parseResultMessage } from './parse.js';
+
+const INGEST = process.env.TELEGRAM_INGEST === '1';
+const SOURCE_CHATS = (process.env.TELEGRAM_SOURCE_CHATS || '')
+  .split(',').map((s) => s.trim()).filter(Boolean);
+let KEYWORD_MAP = [];
+try { KEYWORD_MAP = buildKeywordMap(JSON.parse(process.env.TELEGRAM_KEYWORD_MAP || '{}')); }
+catch { KEYWORD_MAP = buildKeywordMap(); }
+
+function chatAllowed(chat) {
+  if (!SOURCE_CHATS.length) return true; // accept all if not restricted
+  return SOURCE_CHATS.includes(String(chat.id)) || (chat.username && SOURCE_CHATS.includes('@' + chat.username));
+}
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const API = TOKEN ? `https://api.telegram.org/bot${TOKEN}` : null;
@@ -37,7 +50,26 @@ const HELP = [
   '/stop — ลบทั้งหมด',
 ].join('\n');
 
-async function handleUpdate(pool, u) {
+async function handleUpdate(pool, u, onIngest) {
+  // ingest result messages from groups/channels
+  const post = u.channel_post || u.message;
+  if (INGEST && onIngest && post && post.text && post.chat && post.chat.type !== 'private') {
+    if (chatAllowed(post.chat) && !post.text.trim().startsWith('/')) {
+      const parsed = parseResultMessage(post.text, KEYWORD_MAP);
+      if (parsed && (parsed.top3 || parsed.bottom2)) {
+        const date = new Date().toISOString().slice(0, 10);
+        try {
+          await onIngest({ ...parsed, date });
+          console.log(`[ingest] ${parsed.lottery} 3บน=${parsed.top3||'-'} 2ล่าง=${parsed.bottom2||'-'} (chat ${post.chat.id})`);
+        } catch (e) { console.error('[ingest]', e.message); }
+        return;
+      }
+      // log unrecognized so the source chat id is discoverable for locking down
+      if (!SOURCE_CHATS.length) console.log(`[ingest] ข้ามข้อความจาก chat ${post.chat.id} (แกะไม่ได้)`);
+      return;
+    }
+  }
+
   const msg = u.message;
   if (!msg || !msg.text) return;
   const chatId = msg.chat.id;
@@ -101,22 +133,22 @@ export async function notifyDraw(pool, lottery, draw) {
   }
 }
 
-export function startBot(pool) {
+export function startBot(pool, onIngest) {
   if (!API) {
     console.log('[tg] TELEGRAM_BOT_TOKEN ไม่ได้ตั้งค่า — ข้ามการเปิดบอท');
     return;
   }
+  if (INGEST) console.log(`[ingest] เปิดอ่านผลจากกลุ่ม Telegram${SOURCE_CHATS.length ? ' (เฉพาะ ' + SOURCE_CHATS.join(',') + ')' : ' (ทุกกลุ่มที่บอทอยู่)'}`);
   let offset = 0;
   const poll = async () => {
     try {
-      const res = await fetch(`${API}/getUpdates?timeout=30&offset=${offset}`);
+      const res = await fetch(`${API}/getUpdates?timeout=30&offset=${offset}&allowed_updates=["message","channel_post"]`);
       const data = await res.json();
       for (const u of data.result || []) {
         offset = u.update_id + 1;
-        handleUpdate(pool, u).catch((e) => console.error('[tg] handle', e.message));
+        handleUpdate(pool, u, onIngest).catch((e) => console.error('[tg] handle', e.message));
       }
     } catch (e) {
-      // network blip — back off briefly
       await new Promise((r) => setTimeout(r, 3000));
     }
     setImmediate(poll);
