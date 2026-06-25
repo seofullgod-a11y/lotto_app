@@ -148,8 +148,34 @@ $('clear-btn').addEventListener('click', () => { $('numbers').value=''; $('resul
 if (TG_USERNAME) $('tg-link-note').innerHTML = `เปิดบอท: <a href="https://t.me/${TG_USERNAME}">@${TG_USERNAME}</a>`;
 else $('tg-link-note').textContent = 'ตั้งค่า TELEGRAM_BOT_TOKEN และใส่ชื่อบอทใน app.js เพื่อแสดงลิงก์เปิดบอท';
 
+async function loadConfig() {
+  try {
+    const { adsense } = await (await fetch('/api/config')).json();
+    if (!adsense) return;
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsense}`;
+    s.crossOrigin = 'anonymous';
+    document.head.appendChild(s);
+    for (const id of ['ad-top', 'ad-bottom']) {
+      const slot = $(id); if (!slot) continue;
+      const ins = document.createElement('ins');
+      ins.className = 'adsbygoogle';
+      ins.style.display = 'block';
+      ins.setAttribute('data-ad-client', adsense);
+      ins.setAttribute('data-ad-format', 'auto');
+      ins.setAttribute('data-full-width-responsive', 'true');
+      slot.appendChild(ins);
+      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch {}
+    }
+  } catch {}
+}
+
 (async () => {
   await loadLotteries();
+  const q = new URLSearchParams(location.search).get('lottery');
+  if (q && LOTTERIES.find((x) => x.code === q)) { $('lottery-select').value = q; setCurrent(q); }
   await Promise.all([loadLatest(), loadDrawList()]);
   connectStream();
+  loadConfig();
 })();

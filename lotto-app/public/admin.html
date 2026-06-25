@@ -63,7 +63,33 @@
       </div>
       <div id="log"></div>
     </section>
+
+    <section class="card section-gap">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <h2 class="h-section" style="margin:0">สถิติการใช้งานเว็บ</h2>
+        <button class="btn btn-ghost" id="load-analytics">โหลดข้อมูล</button>
+      </div>
+      <div id="analytics" style="margin-top:14px"><p class="note">กดปุ่มเพื่อดูยอดเข้าชมและเลขที่คนตรวจบ่อย</p></div>
+    </section>
   </main>
+
+  <script>
+    const A = (id) => document.getElementById(id);
+    A('load-analytics').onclick = async () => {
+      const token = sessionStorage.token || A('token').value.trim();
+      const box = A('analytics'); box.innerHTML = '<p class="note">กำลังโหลด…</p>';
+      try {
+        const r = await fetch('/api/admin/analytics', { headers: { Authorization: 'Bearer ' + token } });
+        const d = await r.json(); if (!r.ok) throw new Error(d.error || r.status);
+        const views = (d.topViews||[]).slice(0,12).map(v=>`<tr><td>${v.path}</td><td style="text-align:right">${v.count.toLocaleString('th-TH')}</td></tr>`).join('') || '<tr><td class="note">—</td></tr>';
+        const nums = Object.entries(d.topNumbers||{}).map(([lot,arr])=>`<div style="margin-top:10px"><b style="font-family:var(--display)">${lot}</b>: ${arr.slice(0,10).map(x=>`<span style="font-family:var(--tnum);background:var(--surface-2);padding:3px 8px;border-radius:7px;margin:2px;display:inline-block">${x.number} (${x.count})</span>`).join('')}</div>`).join('') || '<p class="note">ยังไม่มีการตรวจเลข</p>';
+        box.innerHTML = `<p class="note">เข้าชมรวม ${d.totalViews.toLocaleString('th-TH')} • ตรวจเลขรวม ${d.totalChecks.toLocaleString('th-TH')}</p>
+          <h3 style="font-family:var(--display);font-size:1rem;margin:14px 0 6px">หน้าที่เข้าชมบ่อย</h3>
+          <table style="width:100%;border-collapse:collapse"><tbody>${views}</tbody></table>
+          <h3 style="font-family:var(--display);font-size:1rem;margin:16px 0 6px">เลขที่คนตรวจบ่อย</h3>${nums}`;
+      } catch (e) { box.innerHTML = `<p class="note">โหลดไม่สำเร็จ: ${e.message}</p>`; }
+    };
+  </script>
 
   <script>
     const $ = (id) => document.getElementById(id);

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>สถิติหวยย้อนหลัง — เลขท้าย 2 ตัวออกบ่อย เลขเด็ดย้อนหลัง</title>
-  <meta name="description" content="สถิติสลากกินแบ่งรัฐบาลย้อนหลัง เลขท้าย 2 ตัวออกบ่อยที่สุด เลขหน้า-ท้าย 3 ตัว และเลขที่ไม่เคยออก วิเคราะห์จากผลย้อนหลังหลายร้อยงวด" />
+  <title>สถิติหวยย้อนหลัง — เลขออกบ่อย ทุกประเภทหวย | ตรวจหวย</title>
+  <meta name="description" content="สถิติหวยย้อนหลังทุกประเภท สลากกินแบ่งรัฐบาล หวยลาว ฮานอย หุ้น เลขท้าย 2 ตัว/3 ตัวออกบ่อย เลขที่ไม่เคยออก วิเคราะห์จากผลย้อนหลัง" />
   <meta name="theme-color" content="#0c8a63" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
@@ -23,37 +23,23 @@
 <body>
   <header class="site-head">
     <div class="wrap">
-      <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>สลากกินแบ่งรัฐบาล</small></b></a>
-      <nav class="nav">
-        <a href="/">ตรวจหวย</a>
-        <a href="/stats" aria-current="page">สถิติ</a>
-        <a href="/#subscribe">แจ้งเตือน</a>
-      </nav>
+      <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>ทุกประเภท</small></b></a>
+      <nav class="nav"><a href="/">ตรวจหวย</a><a href="/stats" aria-current="page">สถิติ</a><a href="/#subscribe">แจ้งเตือน</a></nav>
     </div>
   </header>
 
   <main class="wrap">
+    <div class="lottery-pick">
+      <label for="lottery-select">เลือกประเภทหวย</label>
+      <select id="lottery-select"></select>
+      <span class="lottery-sched" id="lottery-sched"></span>
+    </div>
+
     <p class="eyebrow">วิเคราะห์ย้อนหลัง</p>
-    <h1 class="h-section" style="font-size:1.5rem">สถิติเลขออกหวยย้อนหลัง</h1>
+    <h1 class="h-section" style="font-size:1.5rem" id="title">สถิติเลขออกหวยย้อนหลัง</h1>
     <p class="note" id="range" style="margin-bottom:24px">กำลังโหลด…</p>
 
-    <div class="cols">
-      <section class="card"><h2 class="h-section">เลขท้าย 2 ตัว ออกบ่อยที่สุด</h2><div id="back2-all"></div></section>
-      <section class="card"><h2 class="h-section">เลขท้าย 2 ตัว มาแรง (24 งวดล่าสุด)</h2><div id="back2-recent"></div></section>
-    </div>
-
-    <div class="cols section-gap">
-      <section class="card"><h2 class="h-section">เลขหน้า 3 ตัว ออกบ่อย</h2><div id="front3"></div></section>
-      <section class="card"><h2 class="h-section">เลขท้าย 3 ตัว ออกบ่อย</h2><div id="back3"></div></section>
-    </div>
-
-    <section class="card section-gap"><h2 class="h-section">เลขท้ายของรางวัลที่ 1 ออกเลขอะไรบ่อย</h2><div id="first-digit"></div></section>
-
-    <section class="card section-gap">
-      <h2 class="h-section">เลขท้าย 2 ตัวที่ยังไม่เคยออกเลย</h2>
-      <p class="note" style="margin-top:-6px;margin-bottom:14px">จากข้อมูลย้อนหลังที่มี — ใช้ประกอบการตัดสินใจ ไม่ใช่การรับประกันผล</p>
-      <div class="chip-grid" id="never-hit"></div>
-    </section>
+    <div id="stats-body"></div>
 
     <p class="note section-gap">สถิติเป็นเพียงข้อมูลย้อนหลัง การออกรางวัลแต่ละงวดเป็นอิสระต่อกัน ไม่สามารถใช้ทำนายผลได้</p>
   </main>
@@ -63,24 +49,59 @@
   <script>
     const $ = (id) => document.getElementById(id);
     const thai = (iso) => { const M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.']; const [y,m,d]=iso.split('-').map(Number); return `${d} ${M[m-1]} ${y+543}`; };
-    function bars(el, items) {
-      if (!items || !items.length) { el.innerHTML = '<p class="note">ไม่มีข้อมูล</p>'; return; }
+    let LOTTERIES = [];
+
+    function barsHTML(items) {
+      if (!items || !items.length) return '<p class="note">ยังไม่มีข้อมูล</p>';
       const max = items[0].count || 1;
-      el.innerHTML = items.map((it) => `
-        <div class="bar-row"><span class="lab">${it.value}</span>
-          <div class="bar-track"><div class="bar-fill" style="width:${Math.round((it.count/max)*100)}%"></div></div>
-          <span class="ct">${it.count}</span></div>`).join('');
+      return items.map((it) => `<div class="bar-row"><span class="lab">${it.value}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round((it.count/max)*100)}%"></div></div>
+        <span class="ct">${it.count}</span></div>`).join('');
     }
-    (async () => {
+    const card = (title, inner) => `<section class="card" style="margin-bottom:18px"><h2 class="h-section">${title}</h2>${inner}</section>`;
+
+    function renderGovernment(s) {
+      return `<div class="cols">
+        ${card('เลขท้าย 2 ตัว ออกบ่อยที่สุด', barsHTML(s.back2Top))}
+        ${card('เลขท้าย 2 ตัว มาแรง (24 งวดล่าสุด)', barsHTML(s.back2Recent))}
+      </div>
+      <div class="cols section-gap">
+        ${card('เลขหน้า 3 ตัว ออกบ่อย', barsHTML(s.front3Top))}
+        ${card('เลขท้าย 3 ตัว ออกบ่อย', barsHTML(s.back3Top))}
+      </div>
+      ${card('เลขท้ายของรางวัลที่ 1 ออกอะไรบ่อย', barsHTML(s.firstLastDigit))}
+      ${card('เลขท้าย 2 ตัวที่ยังไม่เคยออกเลย', `<div class="chip-grid">${(s.neverHitBack2||[]).map(n=>`<span>${n}</span>`).join('')||'<span class="note">ทุกเลขเคยออกแล้ว</span>'}</div>`)}`;
+    }
+    function renderSimple(s) {
+      return `<div class="cols">
+        ${card('2 ตัวบน ออกบ่อย', barsHTML(s.top2Top))}
+        ${card('2 ตัวล่าง ออกบ่อย', barsHTML(s.bottom2Top))}
+      </div>
+      ${card('3 ตัวบน ออกบ่อย', barsHTML(s.top3Top))}`;
+    }
+
+    async function load(code) {
+      $('range').textContent = 'กำลังโหลด…'; $('stats-body').innerHTML = '';
+      const l = LOTTERIES.find(x=>x.code===code);
+      $('lottery-sched').textContent = l?.schedule || '';
+      $('title').textContent = `สถิติ${l?l.name:'หวย'}ย้อนหลัง`;
       try {
-        const s = await (await fetch('/api/stats')).json();
+        const s = await (await fetch('/api/stats?lottery='+code)).json();
         if (s.range) $('range').textContent = `วิเคราะห์จาก ${s.totalDraws} งวด • ${thai(s.range.from)} – ${thai(s.range.to)}`;
-        else $('range').textContent = 'ยังไม่มีข้อมูล — รัน npm run seed เพื่อโหลดข้อมูลย้อนหลัง';
-        bars($('back2-all'), s.back2Top); bars($('back2-recent'), s.back2Recent);
-        bars($('front3'), s.front3Top); bars($('back3'), s.back3Top);
-        bars($('first-digit'), s.firstLastDigit);
-        $('never-hit').innerHTML = (s.neverHitBack2 || []).map((n) => `<span>${n}</span>`).join('') || '<p class="note">ทุกเลขเคยออกแล้ว</p>';
+        else { $('range').textContent = 'ยังไม่มีข้อมูลย้อนหลังสำหรับหวยนี้'; $('stats-body').innerHTML=''; return; }
+        $('stats-body').innerHTML = s.kind === 'government' ? renderGovernment(s) : renderSimple(s);
       } catch { $('range').textContent = 'โหลดสถิติไม่สำเร็จ'; }
+    }
+
+    (async () => {
+      const { groups, all } = await (await fetch('/api/lotteries')).json();
+      LOTTERIES = all;
+      $('lottery-select').innerHTML = groups.map(g=>`<optgroup label="${g.category}">${g.items.map(i=>`<option value="${i.code}">${i.name}</option>`).join('')}</optgroup>`).join('');
+      const q = new URLSearchParams(location.search).get('lottery');
+      const start = (q && all.find(x=>x.code===q)) ? q : 'government';
+      $('lottery-select').value = start;
+      $('lottery-select').addEventListener('change', e => load(e.target.value));
+      load(start);
     })();
   </script>
 </body>

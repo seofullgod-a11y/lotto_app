@@ -8,7 +8,7 @@ import path from 'path';
 
 import { checkTicket, checkSimple, computeStats, computeSimpleStats, numberHistory, isoToThaiDate, PRIZE } from './lib.js';
 import { LOTTERIES, getLottery, isValidLottery, lotteryKind, lotteriesByCategory, blankDraw } from './lotteries.js';
-import { renderNumberPage, renderSitemap } from './seo.js';
+import { renderNumberPage, renderLotteryPage, renderSitemap } from './seo.js';
 import { syncLatest } from './sources.js';
 import { startBot, notifyDraw } from './telegram.js';
 
@@ -40,6 +40,11 @@ async function initDb() {
       value   TEXT   NOT NULL,
       created_at TIMESTAMPTZ DEFAULT now(),
       UNIQUE (chat_id, lottery, kind, value)
+    );
+    CREATE TABLE IF NOT EXISTS metrics (
+      key   TEXT PRIMARY KEY,
+      count BIGINT NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ DEFAULT now()
     );
   `);
   // Migrate older single-lottery deployments (PK was on date alone). Each step
@@ -77,6 +82,17 @@ async function upsertDraw(lottery, draw) {
     [lottery, draw.date, draw]
   );
 }
+
+// fire-and-forget analytics counter
+function bump(key) {
+  pool.query(
+    `INSERT INTO metrics(key, count, updated_at) VALUES($1,1,now())
+     ON CONFLICT (key) DO UPDATE SET count=metrics.count+1, updated_at=now()`,
+    [key]
+  ).catch(() => {});
+}
+
+const ADSENSE = process.env.ADSENSE_CLIENT || ''; // e.g. ca-pub-XXXXXXXX
 
 // resolve ?lottery= (default government), 400 if unknown
 function lotteryOf(req) {
@@ -160,6 +176,7 @@ app.get('/api/check', checkLimiter, async (req, res) => {
   if (!draw) return res.status(404).json({ error: 'ไม่พบงวดที่ระบุ' });
   const gov = lotteryKind(lottery) === 'government';
   const results = numbers.map((n) => {
+    if (n.length === 2 || n.length === 3 || n.length === 6) bump(`check:${lottery}:${n}`);
     const wins = gov ? checkTicket(n, draw) : checkSimple(n, draw);
     return { number: n, wins, total: gov ? wins.reduce((s, w) => s + w.amount, 0) : 0 };
   });
@@ -209,17 +226,52 @@ app.post('/api/admin/sync', requireAdmin, async (req, res) => {
 
 app.get('/api/prize-table', (req, res) => res.json(PRIZE));
 
-// --- SEO: per-number history pages ---------------------------------------
+// public runtime config (ad client id for the SPA)
+app.get('/api/config', (req, res) => res.json({ adsense: ADSENSE }));
+
+// admin analytics: top viewed pages + most-checked numbers
+app.get('/api/admin/analytics', requireAdmin, async (req, res) => {
+  const { rows } = await pool.query('SELECT key, count FROM metrics ORDER BY count DESC');
+  const views = [];
+  const checks = {};
+  let totalChecks = 0, totalViews = 0;
+  for (const r of rows) {
+    const c = Number(r.count);
+    if (r.key.startsWith('view:')) { views.push({ path: r.key.slice(5), count: c }); totalViews += c; }
+    else if (r.key.startsWith('check:')) {
+      const [, lottery, number] = r.key.split(':');
+      (checks[lottery] ||= []).push({ number, count: c });
+      totalChecks += c;
+    }
+  }
+  for (const k of Object.keys(checks)) checks[k] = checks[k].sort((a, b) => b.count - a.count).slice(0, 20);
+  res.json({ totalViews, totalChecks, topViews: views.slice(0, 30), topNumbers: checks });
+});
+
+// --- SEO: per-number history pages + per-lottery landing pages -----------
 const BASE_URL = (process.env.BASE_URL || '').replace(/\/$/, '');
 const baseFrom = (req) => BASE_URL || `${req.protocol}://${req.get('host')}`;
 
 app.get('/huay/:n', async (req, res) => {
   const n = (req.params.n || '').replace(/\D/g, '');
   if (n.length !== 2 && n.length !== 3) return res.status(404).send('ไม่พบหน้านี้');
+  bump(`view:/huay/${n}`);
   const draws = await allDraws('government');
   const hist = numberHistory(n, draws);
   res.set('Content-Type', 'text/html; charset=utf-8');
-  res.send(renderNumberPage(hist, baseFrom(req)));
+  res.send(renderNumberPage(hist, baseFrom(req), ADSENSE));
+});
+
+app.get('/lotto/:code', async (req, res) => {
+  const code = req.params.code;
+  if (!isValidLottery(code)) return res.status(404).send('ไม่พบหวยนี้');
+  bump(`view:/lotto/${code}`);
+  const lottery = getLottery(code);
+  const all = await allDraws(code);
+  const latest = all[all.length - 1] || null;
+  const recent = all.slice(-10).reverse();
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(renderLotteryPage(lottery, latest, recent, baseFrom(req), ADSENSE));
 });
 
 app.get('/sitemap.xml', async (req, res) => {
@@ -230,7 +282,7 @@ app.get('/sitemap.xml', async (req, res) => {
     for (const x of d.back3 || []) three.add(x);
   }
   res.set('Content-Type', 'application/xml');
-  res.send(renderSitemap(baseFrom(req), [...three].sort()));
+  res.send(renderSitemap(baseFrom(req), [...three].sort(), LOTTERIES.map((l) => l.code)));
 });
 
 app.get('/robots.txt', (req, res) => {

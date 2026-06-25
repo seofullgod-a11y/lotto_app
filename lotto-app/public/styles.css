@@ -150,3 +150,7 @@ ul.clean li { padding: 10px 14px; background: var(--surface-2); border-radius: v
 .lottery-pick select { flex: 1 1 220px; font-family: var(--display); font-size: 1.05rem; font-weight: 500; padding: 11px 14px; cursor: pointer; }
 .lottery-sched { font-size: .82rem; color: var(--jade-deep); font-family: var(--display); background: var(--surface-2); padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
 @media (max-width: 560px) { .lottery-pick { padding: 14px; } .lottery-sched { order: 3; } }
+
+/* ---- ad slots ---- */
+.ad-slot { margin: 26px 0; min-height: 90px; text-align: center; }
+.ad-slot:empty { display: none; }
