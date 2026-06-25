@@ -19,28 +19,35 @@ async function getJSON(url, opts = {}) {
   }
 }
 
-// GLO official API. Shape varies; this adapter is best-effort and should be
-// verified against the live response, then adjusted if the field names differ.
+// GLO official API. Confirmed endpoint: POST /api/lottery/getLatestLottery.
+// The JSON mirrors the prizes[] / runningNumbers[] shape, so we reuse the
+// same normalizer; a flat-field fallback covers shape variations.
 export async function fetchFromGLO() {
-  const data = await getJSON(`${GLO}/getLatestLottery`);
-  const d = data?.response?.data || data?.data || data;
+  const data = await getJSON(`${GLO}/getLatestLottery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  // primary: prizes[] / runningNumbers[] under .response
+  const norm = normalizeRayriffy(data?.response ? data : { response: data?.data || data });
+  if (norm && norm.first) return norm;
+
+  // fallback: flat fields (#first #last2 #last3f #last3b #near1 #second...)
+  const d = data?.response?.data || data?.data || data?.response || data;
   if (!d) return null;
-  const pick = (v) => (Array.isArray(v) ? v : v ? [v] : []);
-  const iso =
-    thaiDateToISO(d.date) ||
-    (d.date_announce ? String(d.date_announce).slice(0, 10) : null);
+  const pick = (v) => (Array.isArray(v) ? v : v ? [v] : []).map((x) => (x && x.value) || x).filter(Boolean);
+  const iso = thaiDateToISO(d.date) || (d.date_announce ? String(d.date_announce).slice(0, 10) : null);
   if (!iso) return null;
   return {
     date: iso,
-    first: d.first?.number?.[0]?.value || d.first || '',
-    near1: pick(d.near1?.number || d.near1).map((x) => x.value || x),
-    front3: pick(d.last3f?.number || d.front3).map((x) => x.value || x),
-    back3: pick(d.last3b?.number || d.back3).map((x) => x.value || x),
-    back2: d.last2?.number?.[0]?.value || d.back2 || '',
-    second: pick(d.second?.number || d.second).map((x) => x.value || x),
-    third: pick(d.third?.number || d.third).map((x) => x.value || x),
-    fourth: pick(d.fourth?.number || d.fourth).map((x) => x.value || x),
-    fifth: pick(d.fifth?.number || d.fifth).map((x) => x.value || x),
+    first: (pick(d.first)[0]) || '',
+    near1: pick(d.near1),
+    front3: pick(d.last3f || d.front3),
+    back3: pick(d.last3b || d.back3),
+    back2: (pick(d.last2 || d.back2)[0]) || '',
+    second: pick(d.second),
+    third: pick(d.third),
+    fourth: pick(d.fourth),
+    fifth: pick(d.fifth),
   };
 }
 
