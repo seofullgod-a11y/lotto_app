@@ -135,10 +135,22 @@ async function check() {
   } catch { box.innerHTML = '<p class="note">เกิดข้อผิดพลาด ลองใหม่อีกครั้ง</p>'; }
 }
 
+async function loadPopular() {
+  try {
+    const r = await fetch(`/api/popular?lottery=${current.code}`);
+    const { trending, frequent } = await r.json();
+    const chip = (it, hot) => `<a class="hot-chip${hot ? ' hot' : ''}" href="/huay/${it.value}"><b class="num">${it.value}</b><small>${hot ? 'ตรวจ ' : 'ออก '}${it.count} ครั้ง</small></a>`;
+    const tEl = $('hot-trending'), fEl = $('hot-frequent');
+    tEl.innerHTML = trending.length ? trending.map((x) => chip(x, true)).join('') : '<p class="note" style="margin:0">ยังไม่มีข้อมูล — พอมีคนตรวจเลขจะขึ้นที่นี่</p>';
+    fEl.innerHTML = frequent.length ? frequent.map((x) => chip(x, false)).join('') : '<p class="note" style="margin:0">ยังไม่มีสถิติย้อนหลัง</p>';
+    $('popular-wrap').style.display = (trending.length || frequent.length) ? '' : 'none';
+  } catch { $('popular-wrap').style.display = 'none'; }
+}
+
 async function switchLottery() {
   setCurrent($('lottery-select').value);
   $('results').innerHTML = '';
-  await Promise.all([loadLatest(), loadDrawList()]);
+  await Promise.all([loadLatest(), loadDrawList(), loadPopular()]);
 }
 
 $('lottery-select').addEventListener('change', switchLottery);
@@ -175,7 +187,7 @@ async function loadConfig() {
   await loadLotteries();
   const q = new URLSearchParams(location.search).get('lottery');
   if (q && LOTTERIES.find((x) => x.code === q)) { $('lottery-select').value = q; setCurrent(q); }
-  await Promise.all([loadLatest(), loadDrawList()]);
+  await Promise.all([loadLatest(), loadDrawList(), loadPopular()]);
   connectStream();
   loadConfig();
 })();

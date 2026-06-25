@@ -154,3 +154,52 @@ ul.clean li { padding: 10px 14px; background: var(--surface-2); border-radius: v
 /* ---- ad slots ---- */
 .ad-slot { margin: 26px 0; min-height: 90px; text-align: center; }
 .ad-slot:empty { display: none; }
+
+/* ---- popular numbers ---- */
+.hot-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.hot-card { padding: 20px; }
+.hot-h { font-family: var(--display); font-size: 1.02rem; font-weight: 600; margin: 0 0 14px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.hot-h span { font-size: .76rem; font-weight: 400; color: var(--muted); }
+.hot-grid { display: flex; flex-wrap: wrap; gap: 9px; }
+.hot-chip { display: flex; flex-direction: column; align-items: center; min-width: 62px; padding: 9px 12px; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 13px; text-decoration: none; color: var(--ink); transition: .15s; }
+.hot-chip:hover { transform: translateY(-2px); border-color: var(--jade); box-shadow: var(--shadow-sm); }
+.hot-chip b { font-size: 1.4rem; letter-spacing: .06em; line-height: 1.1; }
+.hot-chip small { font-size: .68rem; color: var(--muted); margin-top: 2px; }
+.hot-chip.hot { background: linear-gradient(135deg, #fff8e7, var(--gold-soft)); border-color: var(--gold-line); }
+.hot-chip.hot b { color: #8a6608; }
+
+/* ---- mobile polish ---- */
+@media (max-width: 600px) {
+  .wrap { padding: 0 14px; }
+  main { padding: 20px 0 64px; }
+  .site-head .wrap { height: auto; padding: 10px 14px; flex-wrap: wrap; gap: 9px; }
+  .brand b small { display: none; }
+  .brand .logo { width: 30px; height: 30px; }
+  .nav { width: 100%; gap: 6px; }
+  .nav a { flex: 1; text-align: center; padding: 9px 4px; font-size: .86rem; }
+
+  .hero { padding: 20px 16px 18px; border-radius: 16px; }
+  .first-prize { padding: 14px 0 4px; }
+  .mini-grid { gap: 8px; }
+  .mini { padding: 10px 12px; }
+  .mini .v { font-size: 1.16rem; }
+
+  .card, .hot-card { padding: 16px; border-radius: 16px; }
+  .lottery-pick { padding: 14px; gap: 9px; }
+  .lottery-pick select { flex: 1 1 100%; }
+  .lottery-sched { order: 3; }
+  .field-row { gap: 10px; }
+  .field { flex: 1 1 100% !important; }
+  .btn { flex: 1; text-align: center; padding: 13px 18px; }
+  .field-row .btn-ghost { flex: 0 0 auto; }
+
+  .section-gap { margin-top: 32px; }
+  .hot-cols { grid-template-columns: 1fr; gap: 12px; }
+  .hot-chip { flex: 1 1 calc(33.333% - 9px); min-width: 0; }
+
+  .site-foot .wrap { flex-direction: column; gap: 8px; }
+}
+@media (max-width: 380px) {
+  .first-prize .big { font-size: 2.6rem; }
+  .hot-chip { flex-basis: calc(50% - 9px); }
+}

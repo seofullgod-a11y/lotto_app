@@ -189,6 +189,23 @@ app.get('/api/stats', async (req, res) => {
   res.json({ lottery, kind: lotteryKind(lottery), ...(await getStats(lottery)) });
 });
 
+// public: popular numbers — trending (most-checked) + frequent (stats)
+app.get('/api/popular', async (req, res) => {
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  const { rows } = await pool.query(
+    'SELECT key, count FROM metrics WHERE key LIKE $1 ORDER BY count DESC LIMIT 60',
+    [`check:${lottery}:%`]
+  );
+  const trending = rows
+    .map((r) => ({ value: r.key.split(':')[2], count: Number(r.count) }))
+    .filter((x) => x.value && (x.value.length === 2 || x.value.length === 3))
+    .slice(0, 8);
+  const stats = await getStats(lottery);
+  const frequent = (lotteryKind(lottery) === 'government' ? stats.back2Top : stats.bottom2Top) || [];
+  res.json({ lottery, trending, frequent: frequent.slice(0, 8) });
+});
+
 // --- admin (live entry) ---------------------------------------------------
 function requireAdmin(req, res, next) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
