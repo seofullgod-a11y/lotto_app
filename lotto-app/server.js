@@ -11,6 +11,7 @@ import { LOTTERIES, getLottery, isValidLottery, lotteryKind, lotteriesByCategory
 import { renderNumberPage, renderLotteryPage, renderSitemap } from './seo.js';
 import { syncLatest } from './sources.js';
 import { getProvider } from './providers.js';
+import { buildKeywordMap, parseResultMessage } from './parse.js';
 import { startBot, notifyDraw } from './telegram.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -239,6 +240,31 @@ app.post('/api/admin/sync', requireAdmin, async (req, res) => {
     res.json({ ok: true, source, draw });
   } catch (e) {
     res.status(502).json({ error: e.message });
+  }
+});
+
+// Ingest a result forwarded from a Telegram listener (Telethon user session).
+// Accepts { text } (parsed server-side) or { lottery, top3, bottom2, date }.
+const INGEST_TOKEN = process.env.INGEST_TOKEN || ADMIN_TOKEN;
+const KEYWORD_MAP = (() => {
+  try { return buildKeywordMap(JSON.parse(process.env.TELEGRAM_KEYWORD_MAP || '{}')); }
+  catch { return buildKeywordMap(); }
+})();
+
+app.post('/api/ingest', async (req, res) => {
+  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || req.body?.token;
+  if (!INGEST_TOKEN || token !== INGEST_TOKEN) return res.status(401).json({ error: 'ไม่ได้รับอนุญาต' });
+  const { text, lottery, top3, bottom2, date } = req.body || {};
+  let parsed = null;
+  if (text) parsed = parseResultMessage(text, KEYWORD_MAP);
+  else if (lottery) parsed = { lottery, top3: top3 || '', bottom2: bottom2 || '' };
+  if (!parsed || !parsed.lottery) return res.json({ ok: true, matched: false });
+  const d = date || new Date().toISOString().slice(0, 10);
+  try {
+    await ingestResult({ ...parsed, date: d });
+    res.json({ ok: true, matched: true, ...parsed, date: d });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
