@@ -67,6 +67,15 @@ async function initDb() {
       best_streak INT NOT NULL DEFAULT 0,
       updated_at  TIMESTAMPTZ DEFAULT now()
     );
+    CREATE TABLE IF NOT EXISTS side_bets (
+      lottery   TEXT NOT NULL,
+      device_id TEXT NOT NULL,
+      nickname  TEXT NOT NULL DEFAULT 'ผู้เล่น',
+      hilo      TEXT,
+      oddeven   TEXT,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      PRIMARY KEY (lottery, device_id)
+    );
   `);
   // Migrate older single-lottery deployments (PK was on date alone). Each step
   // is best-effort so it is harmless on already-migrated / fresh databases.
@@ -120,7 +129,6 @@ async function scoreForDraw(lottery, draw) {
   const back2 = lotteryKind(lottery) === 'government' ? draw.back2 : draw.bottom2;
   if (!back2) return;
   const { rows } = await pool.query('SELECT device_id, nickname, guess FROM predictions WHERE lottery=$1', [lottery]);
-  if (!rows.length) return;
   for (const r of rows) {
     const cur = await pool.query('SELECT points, wins, plays, streak, best_streak FROM players WHERE device_id=$1', [r.device_id]);
     const p = cur.rows[0] || { points: 0, wins: 0, plays: 0, streak: 0, best_streak: 0 };
@@ -138,6 +146,26 @@ async function scoreForDraw(lottery, draw) {
     );
   }
   await pool.query('DELETE FROM predictions WHERE lottery=$1', [lottery]);
+
+  // score side bets (สูง-ต่ำ / คู่-คี่): +5 points each correct, no streak
+  const sb = await pool.query('SELECT device_id, nickname, hilo, oddeven FROM side_bets WHERE lottery=$1', [lottery]);
+  if (sb.rows.length) {
+    const n = parseInt(back2, 10);
+    const isHigh = n >= 50, isOdd = n % 2 === 1;
+    for (const r of sb.rows) {
+      let gain = 0;
+      if (r.hilo && ((r.hilo === 'high') === isHigh)) gain += 5;
+      if (r.oddeven && ((r.oddeven === 'odd') === isOdd)) gain += 5;
+      const cur = await pool.query('SELECT points, plays FROM players WHERE device_id=$1', [r.device_id]);
+      const p = cur.rows[0] || { points: 0, plays: 0 };
+      await pool.query(
+        `INSERT INTO players(device_id, nickname, points, plays, updated_at) VALUES($1,$2,$3,$4,now())
+         ON CONFLICT (device_id) DO UPDATE SET points=$3, plays=$4, nickname=$2, updated_at=now()`,
+        [r.device_id, r.nickname, p.points + gain, p.plays + 1]
+      );
+    }
+    await pool.query('DELETE FROM side_bets WHERE lottery=$1', [lottery]);
+  }
 }
 
 // resolve ?lottery= (default government), 400 if unknown
@@ -285,10 +313,33 @@ app.get('/api/leaderboard', async (req, res) => {
     const r = await pool.query('SELECT nickname, points, wins, plays, streak, best_streak FROM players WHERE device_id=$1', [deviceId]);
     me = r.rows[0] || null;
     const p = await pool.query('SELECT lottery, guess FROM predictions WHERE device_id=$1', [deviceId]);
-    if (me) me.pending = p.rows;
-    else me = { pending: p.rows };
+    const sb = await pool.query('SELECT lottery, hilo, oddeven FROM side_bets WHERE device_id=$1', [deviceId]);
+    if (!me) me = {};
+    me.pending = p.rows;
+    me.sidebets = sb.rows;
   }
   res.json({ top: rows, me });
+});
+
+// hi-lo / odd-even side bet
+app.post('/api/sidebet', predictLimiter, async (req, res) => {
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  const deviceId = String(req.body?.deviceId || '').slice(0, 64);
+  const nickname = String(req.body?.nickname || 'ผู้เล่น').trim().slice(0, 24) || 'ผู้เล่น';
+  const hilo = ['high', 'low'].includes(req.body?.hilo) ? req.body.hilo : null;
+  const oddeven = ['odd', 'even'].includes(req.body?.oddeven) ? req.body.oddeven : null;
+  if (!deviceId || (!hilo && !oddeven)) return res.status(400).json({ error: 'เลือกอย่างน้อย 1 อย่าง' });
+  await pool.query(
+    `INSERT INTO side_bets(lottery, device_id, nickname, hilo, oddeven) VALUES($1,$2,$3,$4,$5)
+     ON CONFLICT (lottery, device_id) DO UPDATE SET nickname=$3, hilo=$4, oddeven=$5, created_at=now()`,
+    [lottery, deviceId, nickname, hilo, oddeven]
+  );
+  await pool.query(
+    `INSERT INTO players(device_id, nickname) VALUES($1,$2) ON CONFLICT (device_id) DO UPDATE SET nickname=$2`,
+    [deviceId, nickname]
+  );
+  res.json({ ok: true, hilo, oddeven });
 });
 
 // ---- dream -> numbers (AI with static fallback) -------------------------
