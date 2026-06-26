@@ -1,187 +1,109 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เกมลุ้นหวย — ทายเลข วงล้อเสี่ยงโชค สูง-ต่ำ | ตรวจหวย</title>
-<meta name="description" content="เกมลุ้นหวยฟรีหลายแบบ ทายเลขท้าย 2 ตัว วงล้อเสี่ยงโชค ทายสูง-ต่ำ คู่-คี่ สะสมแต้ม ขึ้นลีดเดอร์บอร์ด เพื่อความบันเทิง">
-<meta name="theme-color" content="#0c8a63"><link rel="stylesheet" href="/styles.css">
-<style>
-.reveal{opacity:0;transform:translateY(14px);animation:rise .55s ease forwards}@keyframes rise{to{opacity:1;transform:none}}
-.game-hero{position:relative;overflow:hidden;border-radius:22px;padding:26px 20px;text-align:center;color:#fff;background:linear-gradient(120deg,#14b884,#0c8a63 40%,#075c45);background-size:200% 200%;animation:flow 8s ease infinite;margin-bottom:18px}
-@keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.game-hero h1{font-family:var(--display);font-size:1.6rem;font-weight:700;margin:0 0 4px;position:relative}
-.game-hero p{opacity:.9;margin:0;font-size:.92rem;position:relative}
-.floaty{position:absolute;font-size:1.9rem;opacity:.35;animation:float 5s ease-in-out infinite}
-.floaty.a{top:12px;left:16px}.floaty.b{top:54px;right:20px;animation-delay:1.2s}.floaty.c{bottom:12px;left:38px;animation-delay:2s;font-size:1.4rem}
-@keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-12px) rotate(8deg)}}
+// games.js — pure logic for the engagement features (no I/O)
+// ---------------------------------------------------------------------------
 
-.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}.stat-box{flex:1 1 80px;background:var(--surface-2);border-radius:14px;padding:15px 10px;text-align:center;transition:.2s}
-.stat-box:hover{transform:translateY(-3px);background:#eaf3ef}
-.stat-box b{font-family:var(--tnum);font-size:1.8rem;color:var(--jade-deep);display:block;line-height:1}.stat-box small{color:var(--muted);font-size:.74rem}
-.flame{display:inline-block;animation:flicker 1.4s ease-in-out infinite}@keyframes flicker{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.18) rotate(4deg)}}
-
-.gtabs{display:flex;gap:8px;margin-bottom:16px}
-.gtabs button{flex:1;padding:13px 6px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;font-family:var(--display);font-weight:600;cursor:pointer;color:var(--muted);transition:.18s;font-size:.92rem}
-.gtabs button.on{background:linear-gradient(135deg,var(--jade),var(--jade-deep));color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:0 6px 16px rgba(12,138,99,.3)}
-
-.reels{display:flex;justify-content:center;gap:14px;margin:6px 0 18px}
-.reel{width:84px;height:112px;border-radius:18px;background:linear-gradient(160deg,var(--jade),var(--jade-deep));border:2px solid var(--gold-line);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:4rem;color:#fff;box-shadow:inset 0 -8px 22px rgba(0,0,0,.18)}
-.reel.roll{animation:shake .12s linear infinite}@keyframes shake{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
-.reel.pop{animation:pop .42s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
-.dice-btn{background:var(--surface-2);color:var(--jade-deep);border:1.5px solid var(--line);border-radius:999px;padding:11px 22px;font-family:var(--display);font-weight:600;cursor:pointer;transition:.15s}
-.dice-btn:hover{transform:translateY(-2px);border-color:var(--jade)}.dice-btn:active{transform:scale(.96)}
-.die{display:inline-block;animation:spin 4s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-
-.play-btn{width:100%;background:linear-gradient(120deg,var(--gold),#e0a92a);color:#3a2c00;border:none;border-radius:15px;padding:16px;font-family:var(--display);font-weight:700;font-size:1.15rem;cursor:pointer;box-shadow:0 8px 22px rgba(200,149,26,.4);transition:.15s;animation:glow 2.4s ease-in-out infinite}
-@keyframes glow{0%,100%{box-shadow:0 8px 22px rgba(200,149,26,.35)}50%{box-shadow:0 8px 34px rgba(200,149,26,.65)}}
-.play-btn:hover{transform:translateY(-2px)}.play-btn:active{transform:scale(.97)}.play-btn:disabled{opacity:.6;animation:none}
-
-.confirm{background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;padding:18px;text-align:center;margin-top:16px;animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
-.confirm .big{font-family:var(--tnum);font-size:2.6rem;font-weight:700;color:#8a6608;letter-spacing:.2em;margin:4px 0}
-
-/* wheel */
-.wheel-wrap{position:relative;width:240px;height:240px;margin:10px auto 0}
-.wheel{width:240px;height:240px;border-radius:50%;border:8px solid var(--gold);transition:transform 3.6s cubic-bezier(.17,.67,.2,1);background:conic-gradient(#14b884 0 36deg,#c8951a 0 72deg,#0c8a63 0 108deg,#e0a92a 0 144deg,#075c45 0 180deg,#14b884 0 216deg,#c8951a 0 252deg,#0c8a63 0 288deg,#e0a92a 0 324deg,#075c45 0 360deg);box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.wheel-center{position:absolute;inset:0;margin:auto;width:90px;height:90px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:var(--tnum);font-weight:700;font-size:2.2rem;color:var(--jade-deep);box-shadow:0 2px 10px rgba(0,0,0,.2)}
-.wheel-ptr{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:1.8rem;z-index:2}
-
-/* hi-lo */
-.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 18px}
-.choice{padding:18px;border:2px solid var(--line);border-radius:15px;background:var(--surface);cursor:pointer;text-align:center;font-family:var(--display);font-weight:600;font-size:1.05rem;transition:.15s}
-.choice .ic{font-size:1.8rem;display:block;margin-bottom:4px}
-.choice.sel{border-color:var(--jade);background:var(--surface-2);color:var(--jade-deep);transform:translateY(-2px)}
-.choice-label{font-family:var(--display);font-weight:600;font-size:.9rem;margin:6px 0}
-
-.lb{width:100%;border-collapse:collapse}.lb td,.lb th{padding:12px;border-bottom:1px solid var(--line);text-align:left}
-.lb th{font-family:var(--display);font-size:.8rem;color:var(--muted);font-weight:600}
-.lb td.r{text-align:right;font-family:var(--tnum);font-weight:600}.lb .rank{width:38px;font-family:var(--tnum);font-weight:700;color:var(--jade);font-size:1.1rem}
-.lb tr.me{background:var(--gold-soft);font-weight:600}.lb tbody tr:hover{background:var(--surface-2)}
-.shine{animation:shinep 2s ease-in-out infinite}@keyframes shinep{0%,100%{opacity:1}50%{opacity:.5}}
-#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
-.guess-stat{font-size:.84rem;color:var(--muted);text-align:center;margin:0 0 14px;min-height:18px}.guess-stat b{color:var(--ink)}.guess-stat a{color:var(--jade-deep);font-weight:600;text-decoration:none}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important}.reveal{opacity:1;transform:none}}
-</style></head><body>
-<canvas id="fx"></canvas>
-<header class="site-head"><div class="wrap">
-<a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>เกมลุ้นหวย</small></b></a>
-<nav class="nav"><a href="/">ตรวจหวย</a><a href="/games" aria-current="page">เกม</a><a href="/dream">ทำนายฝัน</a></nav>
-</div></header>
-<main class="wrap">
-<section class="game-hero">
-<span class="floaty a">🎯</span><span class="floaty b">🍀</span><span class="floaty c">🎰</span>
-<h1>เกมลุ้นหวย</h1><p>เล่นฟรี สะสมแต้ม ขึ้นลีดเดอร์บอร์ด · เพื่อความบันเทิง</p>
-</section>
-
-<div id="my-stats" class="stat-row reveal"></div>
-
-<div class="lottery-pick reveal"><label for="lottery-select">เลือกหวย</label><select id="lottery-select"></select></div>
-<input id="nick" maxlength="24" placeholder="ชื่อเล่นของคุณ" style="text-align:center;max-width:240px;margin:0 auto 16px;font-family:var(--display)">
-
-<div class="gtabs reveal">
-<button id="tab-num" class="on">🎯 ทายเลข</button>
-<button id="tab-wheel">🎡 วงล้อ</button>
-<button id="tab-hilo">⚖️ สูง-ต่ำ</button>
-</div>
-
-<!-- ทายเลข -->
-<section id="p-num" class="card reveal">
-<div class="reels"><div class="reel" id="r0">?</div><div class="reel" id="r1">?</div></div>
-<div style="text-align:center;margin-bottom:14px"><button class="dice-btn" id="roll"><span class="die">🎲</span> สุ่มเลขนำโชค</button></div>
-<label style="text-align:center">หรือพิมพ์เลขเอง</label>
-<input id="guess" inputmode="numeric" maxlength="2" placeholder="00" style="text-align:center;font-family:var(--tnum);font-size:1.8rem;letter-spacing:.2em;max-width:140px;margin:0 auto 8px">
-<div id="guess-stat" class="guess-stat"></div>
-<button class="play-btn" id="submit">🎯 ส่งคำทาย (ถูกเป๊ะ +10)</button>
-<div id="confirm-num"></div>
-</section>
-
-<!-- วงล้อ -->
-<section id="p-wheel" class="card reveal" style="display:none">
-<p class="note" style="text-align:center;margin-top:0">หมุนวงล้อรับเลขนำโชค แล้วเอาไปทายต่อได้</p>
-<div class="wheel-wrap"><div class="wheel-ptr">🔻</div><div class="wheel" id="wheel"></div><div class="wheel-center" id="wheel-num">??</div></div>
-<div style="text-align:center;margin:18px 0 0"><button class="play-btn" id="spin" style="max-width:220px">🎡 หมุนเลย</button></div>
-<div id="wheel-actions" style="text-align:center;margin-top:14px"></div>
-</section>
-
-<!-- สูง-ต่ำ -->
-<section id="p-hilo" class="card reveal" style="display:none">
-<p class="note" style="text-align:center;margin-top:0">ทายแนวโน้มเลขท้าย 2 ตัวของงวดหน้า · ถูกอันละ +5</p>
-<div class="choice-label" style="text-align:center">สูง / ต่ำ</div>
-<div class="choice-grid">
-<div class="choice" data-hilo="high"><span class="ic">📈</span>สูง (50-99)</div>
-<div class="choice" data-hilo="low"><span class="ic">📉</span>ต่ำ (00-49)</div>
-</div>
-<div class="choice-label" style="text-align:center">คู่ / คี่</div>
-<div class="choice-grid">
-<div class="choice" data-oddeven="even"><span class="ic">⚖️</span>คู่</div>
-<div class="choice" data-oddeven="odd"><span class="ic">🎲</span>คี่</div>
-</div>
-<button class="play-btn" id="submit-hilo">⚖️ ส่งคำทาย</button>
-<div id="confirm-hilo"></div>
-</section>
-
-<p class="eyebrow section-gap">ลีดเดอร์บอร์ด <span class="shine">🏆</span></p>
-<section class="card reveal"><table class="lb"><thead><tr><th></th><th>ผู้เล่น</th><th class="r">ชนะ</th><th class="r">สตรีค</th><th class="r">แต้ม</th></tr></thead><tbody id="lb"></tbody></table></section>
-</main>
-<footer class="site-foot"><div class="wrap"><span class="note">เกมเพื่อความบันเทิง ไม่มีการเดิมพันด้วยเงิน</span></div></footer>
-<script>
-const $=id=>document.getElementById(id);
-let DEVICE=localStorage.getItem('huay_device');if(!DEVICE){DEVICE='d'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('huay_device',DEVICE);}
-if(localStorage.huay_nick)$('nick').value=localStorage.huay_nick;
-let LOTTERIES=[],current='government';
-const medal=i=>['🥇','🥈','🥉'][i]||'';
-const lotName=c=>(LOTTERIES.find(l=>l.code===c)||{}).short||c;
-const nick=()=>{const n=$('nick').value.trim()||'ผู้เล่น';localStorage.huay_nick=n;return n;};
-
-// tabs
-function tab(t){for(const[k,p]of[['num','p-num'],['wheel','p-wheel'],['hilo','p-hilo']]){$('tab-'+k).classList.toggle('on',k===t);$(p).style.display=k===t?'':'none';}}
-$('tab-num').onclick=()=>tab('num');$('tab-wheel').onclick=()=>tab('wheel');$('tab-hilo').onclick=()=>tab('hilo');
-
-// reels
-function setReels(v,pop){const s=String(v).padStart(2,'0');[['r0',s[0]],['r1',s[1]]].forEach(([id,d])=>{const el=$(id);el.textContent=d;if(pop){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}});}
-async function showGuessStat(n){const el=$('guess-stat');if(!/^\d{2}$/.test(n)){el.innerHTML='';return;}el.innerHTML='กำลังดูสถิติ…';try{const d=await(await fetch('/api/number/'+n)).json();el.innerHTML=d.total?`📊 เลข ${n} เคยออกมาแล้ว <b>${d.total} ครั้ง</b>${d.lastThai?` · ล่าสุด ${d.lastThai}`:''} · <a href="/huay/${n}">ดูสถิติเต็ม →</a>`:`เลข ${n} ยังไม่เคยออกในสถิติย้อนหลัง · <a href="/huay/${n}">ดูเต็ม →</a>`;}catch{el.innerHTML='';}}
-$('guess').addEventListener('input',()=>{const v=$('guess').value.replace(/\D/g,'');if(v.length){setReels(v.padStart(2,'0').slice(-2),true);if(v.length===2)showGuessStat(v);}else{$('r0').textContent='?';$('r1').textContent='?';$('guess-stat').innerHTML='';}});
-$('roll').onclick=()=>{$('r0').classList.add('roll');$('r1').classList.add('roll');let t=0;const iv=setInterval(()=>{$('r0').textContent=Math.floor(Math.random()*10);$('r1').textContent=Math.floor(Math.random()*10);t+=80;if(t>=700){clearInterval(iv);$('r0').classList.remove('roll');$('r1').classList.remove('roll');const n=String(Math.floor(Math.random()*100)).padStart(2,'0');$('guess').value=n;setReels(n,true);showGuessStat(n);}},80);};
-
-// confetti
-const cv=$('fx'),cx=cv.getContext('2d');function fit(){cv.width=innerWidth;cv.height=innerHeight;}fit();addEventListener('resize',fit);
-function confetti(){const cols=['#14b884','#c8951a','#0c8a63','#f0c44a','#ff6b6b'];const P=[];for(let i=0;i<120;i++)P.push({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,g:.4,s:Math.random()*7+4,c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.4});let f=0;(function loop(){cx.clearRect(0,0,cv.width,cv.height);f++;P.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);cx.restore();});if(f<110)requestAnimationFrame(loop);else cx.clearRect(0,0,cv.width,cv.height);})();}
-
-// wheel
-let wheelAngle=0;
-$('spin').onclick=()=>{$('spin').disabled=true;$('wheel-actions').innerHTML='';const n=Math.floor(Math.random()*100);wheelAngle+=360*5+Math.floor(Math.random()*360);$('wheel').style.transform=`rotate(${wheelAngle}deg)`;$('wheel-num').textContent='…';setTimeout(()=>{const s=String(n).padStart(2,'0');$('wheel-num').textContent=s;confetti();$('wheel-actions').innerHTML=`<p style="font-family:var(--display);font-weight:600;margin:0 0 10px">🍀 เลขนำโชคของคุณคือ ${s}</p><button class="dice-btn" id="use-num">ใช้เลขนี้ไปทาย</button>`;$('use-num').onclick=()=>{$('guess').value=s;setReels(s,true);showGuessStat(s);tab('num');$('submit').scrollIntoView({behavior:'smooth',block:'center'});};$('spin').disabled=false;},3700);};
-
-// hi-lo selection
-let pick={hilo:null,oddeven:null};
-document.querySelectorAll('#p-hilo .choice').forEach(c=>c.onclick=()=>{
-  const k=c.dataset.hilo?'hilo':'oddeven';const v=c.dataset.hilo||c.dataset.oddeven;
-  pick[k]=pick[k]===v?null:v;
-  document.querySelectorAll(`#p-hilo .choice[data-${k==='hilo'?'hilo':'oddeven'}]`).forEach(x=>x.classList.toggle('sel',(x.dataset.hilo||x.dataset.oddeven)===pick[k]));
-});
-
-async function loadLotteries(){const{groups,all}=await(await fetch('/api/lotteries')).json();LOTTERIES=all;$('lottery-select').innerHTML=groups.map(g=>`<optgroup label="${g.category}">${g.items.map(i=>`<option value="${i.code}">${i.name}</option>`).join('')}</optgroup>`).join('');}
-async function refresh(){
-  const{top,me}=await(await fetch('/api/leaderboard?deviceId='+DEVICE)).json();
-  $('my-stats').innerHTML=`<div class="stat-box"><b>${me&&me.points||0}</b><small>แต้ม</small></div><div class="stat-box"><b>${me&&me.wins||0}</b><small>ชนะ</small></div><div class="stat-box"><b>${me&&me.streak||0}<span class="flame">🔥</span></b><small>สตรีค</small></div><div class="stat-box"><b>${me&&me.best_streak||0}</b><small>สูงสุด</small></div>`;
-  const pend=me&&me.pending&&me.pending.find(p=>p.lottery===current);
-  $('confirm-num').innerHTML=pend?`<div class="confirm">✅ คุณทาย${lotName(current)}ไว้แล้ว<div class="big">${pend.guess}</div><small class="note">รอหวยออก แล้วมาเช็คแต้ม</small></div>`:'';
-  const sb=me&&me.sidebets&&me.sidebets.find(x=>x.lottery===current);
-  $('confirm-hilo').innerHTML=sb?`<div class="confirm" style="padding:14px"><b>✅ ทายไว้แล้ว:</b> ${sb.hilo?(sb.hilo==='high'?'สูง':'ต่ำ'):''} ${sb.oddeven?(sb.oddeven==='odd'?'คี่':'คู่'):''}<br><small class="note">รอหวยออก</small></div>`:'';
-  $('lb').innerHTML=top.length?top.map((p,i)=>`<tr${me&&p.nickname===me.nickname?' class="me"':''}><td class="rank">${medal(i)||i+1}</td><td>${p.nickname}</td><td class="r">${p.wins}</td><td class="r">${p.streak}🔥</td><td class="r">${p.points}</td></tr>`).join(''):'<tr><td colspan="5" class="note">ยังไม่มีผู้เล่น มาเป็นคนแรก!</td></tr>';
+// ---- prediction game scoring -------------------------------------------
+export const PTS_WIN = 10;
+export function scoreGuess(guess, back2) {
+  const g = String(guess || '').replace(/\D/g, '').padStart(2, '0');
+  const w = String(back2 || '').replace(/\D/g, '').padStart(2, '0');
+  return !!w && g === w;
 }
-$('submit').onclick=async()=>{
-  const guess=$('guess').value.replace(/\D/g,'');if(guess.length!==2)return alert('ใส่เลข 2 หลัก หรือกดสุ่ม/หมุนวงล้อ');
-  $('submit').disabled=true;
-  try{const r=await fetch('/api/predict?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname:nick(),guess})});
-    if(r.ok){confetti();$('guess').value='';await refresh();$('confirm-num').scrollIntoView({behavior:'smooth',block:'center'});}else alert('ส่งไม่สำเร็จ');
-  }catch{alert('เกิดข้อผิดพลาด');}$('submit').disabled=false;
-};
-$('submit-hilo').onclick=async()=>{
-  if(!pick.hilo&&!pick.oddeven)return alert('เลือกอย่างน้อย 1 อย่าง');
-  $('submit-hilo').disabled=true;
-  try{const r=await fetch('/api/sidebet?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname:nick(),hilo:pick.hilo,oddeven:pick.oddeven})});
-    if(r.ok){confetti();await refresh();$('confirm-hilo').scrollIntoView({behavior:'smooth',block:'center'});}else alert('ส่งไม่สำเร็จ');
-  }catch{alert('เกิดข้อผิดพลาด');}$('submit-hilo').disabled=false;
-};
-$('lottery-select').onchange=e=>{current=e.target.value;refresh();};
-(async()=>{await loadLotteries();refresh();})();
-</script></body></html>
+// points for a win given current streak (streak counts this win)
+export function winPoints(streak) {
+  return PTS_WIN + Math.max(0, streak - 1) * 2;
+}
+
+// ---- dream book (ทำนายฝัน) fallback when no AI key ----------------------
+// Each symbol carries a fuller interpretation; modifiers add context from the
+// way the dream is told (เข้าบ้าน, ตัวใหญ่, กัด ...). เพื่อความบันเทิง.
+export const DREAMBOOK = [
+  { kw: ['งูใหญ่', 'งูเหลือม', 'อนาคอนดา', 'งูตัวใหญ่'], nums: ['89', '56', '5'],
+    say: 'การฝันเห็นงูตัวใหญ่ ตามตำราฝันโบราณถือเป็นฝันดีอย่างยิ่ง งูคือสัญลักษณ์ของ "เนื้อคู่" และ "โชคลาภก้อนใหญ่" ยิ่งงูตัวใหญ่มากเท่าไหร่ ก็ยิ่งหมายถึงวาสนาและสิ่งดี ๆ ที่กำลังจะเข้ามาในชีวิตมากเท่านั้น คนโบราณเชื่อว่าผู้ที่ฝันเช่นนี้กำลังจะพบจังหวะชีวิตที่พลิกผันไปในทางที่ดี' },
+  { kw: ['งู'], nums: ['89', '56'],
+    say: 'งู เป็นสัญลักษณ์คลาสสิกของเนื้อคู่และโชคลาภ คนโบราณว่าถ้าฝันเห็นงู มักมีคนแอบชอบหรือเนื้อคู่กำลังเข้ามา และเป็นลางของเงินทองที่กำลังจะไหลมา' },
+  { kw: ['น้ำท่วม', 'แม่น้ำ', 'ทะเล', 'น้ำ'], nums: ['27', '72', '7'],
+    say: 'น้ำ หมายถึงเงินทองและความอุดมสมบูรณ์ การฝันเห็นน้ำมาก ๆ โดยเฉพาะน้ำใส บ่งบอกถึงกระแสเงินที่กำลังไหลเข้ามา แต่ถ้าน้ำขุ่นหรือเชี่ยวกราก อาจเตือนให้ระวังการใช้จ่ายในช่วงนี้' },
+  { kw: ['ฟันหัก', 'ฟันหลุด', 'ฟัน'], nums: ['42', '24', '2'],
+    say: 'ฝันว่าฟันหลุดหรือฟันหัก ตำราว่ามักเกี่ยวกับญาติผู้ใหญ่หรือคนในครอบครัว เป็นการเตือนให้ใส่ใจดูแลสุขภาพคนที่เรารัก และให้ระวังเรื่องคำพูดในช่วงนี้' },
+  { kw: ['พระ', 'วัด', 'ทำบุญ'], nums: ['39', '93', '9'],
+    say: 'พระหรือวัด เป็นนิมิตของสิ่งศักดิ์สิทธิ์ที่คอยคุ้มครอง ฝันเช่นนี้บ่งบอกว่าคุณมีที่พึ่งทางใจ และกำลังจะผ่านพ้นเรื่องหนักใจไปได้ด้วยดี เป็นฝันที่ให้ความสบายใจ' },
+  { kw: ['เด็ก', 'ทารก', 'อุ้มเด็ก'], nums: ['11', '14', '1'],
+    say: 'เด็กหรือทารก หมายถึงการเริ่มต้นใหม่และข่าวดีที่กำลังจะมาถึง คนโบราณว่าฝันเห็นเด็กมักมีเรื่องน่ายินดีเข้ามาในไม่ช้า' },
+  { kw: ['คนตาย', 'ศพ', 'โลงศพ', 'ตาย'], nums: ['04', '40', '0'],
+    say: 'ฝันเรื่องความตาย ตามตำรามักหมายความกลับกัน คือเป็นลางของ "การเกิดใหม่" อายุยืน และการปลดเปลื้องจากสิ่งเก่า ๆ ไม่ใช่เรื่องน่ากลัวอย่างที่คิด มักตามมาด้วยเรื่องดี' },
+  { kw: ['ช้าง'], nums: ['91', '19', '1'],
+    say: 'ช้าง เป็นสัญลักษณ์ของบารมี อำนาจ และความมั่นคง ฝันเห็นช้างใหญ่บ่งบอกถึงความก้าวหน้าในหน้าที่การงานและการได้รับการสนับสนุนจากผู้ใหญ่' },
+  { kw: ['เสือ'], nums: ['30', '03', '3'],
+    say: 'เสือ หมายถึงอำนาจและผู้ใหญ่ที่มีอิทธิพล ฝันเห็นเสืออาจหมายถึงจะได้พบผู้ใหญ่ที่ช่วยเหลือ หรือต้องเผชิญกับคนที่มีอำนาจในช่วงนี้' },
+  { kw: ['ปลา'], nums: ['18', '81', '8'],
+    say: 'ปลา เป็นสัญลักษณ์ของความอุดมสมบูรณ์และเงินทอง ยิ่งฝันเห็นปลาเยอะหรือปลาตัวใหญ่ ยิ่งหมายถึงโชคลาภที่กำลังจะมา' },
+  { kw: ['ทองคำ', 'สร้อยทอง', 'ทอง'], nums: ['59', '95', '9'],
+    say: 'ทอง เป็นนิมิตตรงตัวของโชคลาภเงินทอง ฝันเห็นทองหรือได้รับทอง บ่งบอกถึงลาภลอยและความมั่งคั่งที่กำลังเข้ามา' },
+  { kw: ['ผี', 'วิญญาณ'], nums: ['00', '07', '0'],
+    say: 'ผีหรือวิญญาณ คนโบราณว่ามักมาให้โชคเป็นตัวเลข ฝันเช่นนี้ไม่ต้องตกใจ มักเป็นการมาบอกใบ้เลขเด็ดมากกว่าเรื่องร้าย' },
+  { kw: ['แต่งงาน', 'เจ้าสาว', 'เจ้าบ่าว'], nums: ['63', '36', '6'],
+    say: 'งานแต่งงาน หมายถึงข่าวดี การเริ่มต้นความสัมพันธ์ และความผูกพัน ฝันเช่นนี้มักตามมาด้วยเรื่องมงคลในชีวิต' },
+  { kw: ['รถยนต์', 'ขับรถ', 'รถ'], nums: ['25', '52', '5'],
+    say: 'รถ หมายถึงการเดินทางและความก้าวหน้าในชีวิต ฝันเห็นรถคันใหญ่หรือขับรถลื่นไหล บ่งบอกถึงเส้นทางชีวิตที่กำลังไปได้สวย' },
+  { kw: ['ไฟไหม้', 'ไฟ'], nums: ['77', '70', '7'],
+    say: 'ไฟ เป็นสัญลักษณ์ของพลังและการเปลี่ยนแปลงครั้งใหญ่ ฝันเห็นไฟลุกโชนตำราว่าเป็นลางของความรุ่งเรือง เงินทองที่จะเข้ามาอย่างร้อนแรง' },
+];
+
+// context modifiers — appended when the dream description contains these
+const DREAM_MODS = [
+  { kw: ['เข้าบ้าน', 'ในบ้าน', 'เข้ามาในบ้าน'], add: 'การที่มันเข้ามาในบ้าน เป็นนิมิตที่ดีมาก หมายถึงโชคลาภกำลังเดินทางเข้ามาหาถึงที่ ไม่ต้องออกไปไขว่คว้าไกล' },
+  { kw: ['ตัวใหญ่', 'ใหญ่มาก', 'ขนาดใหญ่'], add: 'ขนาดที่ใหญ่โต ยิ่งตอกย้ำว่าสิ่งที่กำลังจะได้รับนั้นใหญ่และสำคัญตามไปด้วย' },
+  { kw: ['กัด'], add: 'การถูกกัด คนโบราณกลับมองว่าเป็นลางดีของความรักหรือเนื้อคู่ที่กำลังจะเข้ามาแบบไม่ทันตั้งตัว' },
+  { kw: ['หนี', 'วิ่งหนี', 'กลัว'], add: 'แม้ในฝันจะรู้สึกกลัวหรือวิ่งหนี แต่ตำราว่าเป็นการผ่านพ้นอุปสรรค สิ่งไม่ดีกำลังจะผ่านไป' },
+  { kw: ['หลายตัว', 'เยอะ', 'ฝูง'], add: 'การเห็นเป็นจำนวนมาก ยิ่งทวีคูณความหมายของโชคลาภให้มากขึ้นไปอีก' },
+  { kw: ['สีขาว', 'ขาว', 'เผือก'], add: 'สีขาวบริสุทธิ์ในฝัน เสริมเรื่องความศักดิ์สิทธิ์และความโชคดีเป็นพิเศษ' },
+];
+
+export function dreamFallback(text) {
+  const t = String(text || '');
+  const matched = [];
+  const matchedKws = [];
+  for (const e of DREAMBOOK) {
+    const kw = e.kw.find((k) => t.includes(k));
+    if (!kw) continue;
+    // skip if a more specific symbol already covered this family (e.g. งูใหญ่ vs งู)
+    if (matchedKws.some((p) => p.includes(kw) || kw.includes(p))) continue;
+    matched.push(e);
+    matchedKws.push(kw);
+  }
+  if (matched.length) {
+    const parts = matched.map((m) => m.say);
+    for (const mod of DREAM_MODS) if (mod.kw.some((k) => t.includes(k))) parts.push(mod.add);
+    const numbers = [...new Set(matched.flatMap((m) => m.nums))].slice(0, 4);
+    return { numbers, interpretation: parts.join(' '), source: 'ตำราฝันไทย' };
+  }
+  // no symbol matched: derive numbers from the text, generic interpretation
+  let sum = 0; for (const ch of t) sum += ch.charCodeAt(0);
+  const two = String(sum % 100).padStart(2, '0');
+  const three = String(sum % 1000).padStart(3, '0');
+  return {
+    numbers: [two, three],
+    interpretation: 'ความฝันของคุณไม่ตรงกับสัญลักษณ์ในตำราฝันที่เรามี แต่ทุกความฝันล้วนมีความหมาย เราจึงถอดเป็นเลขนำโชคจากพลังของความฝันนี้ให้คุณ ลองเก็บไว้เป็นเลขเสี่ยงทายเพื่อความบันเทิงดูนะ',
+    source: 'สุ่มจากความฝัน',
+  };
+}
+
+// ---- personal lucky numbers (เลขศาสตร์) ---------------------------------
+function reduceTo2(n) {
+  let x = Math.abs(parseInt(n, 10) || 0);
+  while (x >= 100) x = String(x).split('').reduce((s, d) => s + +d, 0);
+  return String(x).padStart(2, '0');
+}
+// from a birthdate yyyy-mm-dd -> a few lucky numbers
+export function luckyFromBirthdate(iso) {
+  const m = String(iso || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return null;
+  const [, y, mo, d] = m;
+  const dd = +d, mm = +mo, yy = +y;
+  const digitsum = (n) => String(n).split('').reduce((s, x) => s + +x, 0);
+  const core = reduceTo2(dd + mm + digitsum(yy));
+  const a = String(dd).padStart(2, '0');
+  const b = reduceTo2(dd * mm);
+  const three = String((dd * 100 + mm * 7 + digitsum(yy)) % 1000).padStart(3, '0');
+  return { numbers: [core, a, b, three].filter((v, i, arr) => arr.indexOf(v) === i) };
+}
