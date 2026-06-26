@@ -266,6 +266,12 @@ app.post('/api/predict', predictLimiter, async (req, res) => {
      ON CONFLICT (lottery, device_id) DO UPDATE SET guess=$4, nickname=$3, created_at=now()`,
     [lottery, deviceId, nickname, guess]
   );
+  // ensure the player shows on the leaderboard immediately (even at 0 points)
+  await pool.query(
+    `INSERT INTO players(device_id, nickname) VALUES($1,$2)
+     ON CONFLICT (device_id) DO UPDATE SET nickname=$2`,
+    [deviceId, nickname]
+  );
   res.json({ ok: true, lottery, guess });
 });
 
