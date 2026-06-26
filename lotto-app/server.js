@@ -371,10 +371,10 @@ app.post('/api/dream', dreamLimiter, async (req, res) => {
         headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001',
-          max_tokens: 300,
+          max_tokens: 700,
           messages: [{
             role: 'user',
-            content: `คุณคือหมอดูทำนายฝันไทยเพื่อความบันเทิง ผู้ใช้ฝันว่า: "${text}"\nตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น รูปแบบ: {"numbers":["เลข2หรือ3หลัก","..."],"interpretation":"คำทำนายสั้นๆ 1-2 ประโยค"} ให้เลข 2-3 ชุด ตามตำราฝันไทย`,
+            content: `คุณคือหมอดูทำนายฝันไทยผู้ช่ำชอง พูดจาให้กำลังใจและสนุก (เพื่อความบันเทิง) ผู้ใช้เล่าฝันว่า: "${text}"\n\nให้ทำนายโดยอ้างอิงรายละเอียดที่เขาเล่าจริง ๆ (เช่น ขนาด สี การกระทำ สถานที่ในฝัน) ตามคติความเชื่อ/ตำราฝันไทย อธิบายว่าฝันแบบนี้มีนัยถึงอะไร (โชคลาภ ความรัก การงาน คำเตือน) ความยาว 3-5 ประโยค อ่านเพลิน\n\nตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่นนอก JSON รูปแบบ: {"interpretation":"คำทำนายละเอียด 3-5 ประโยค","numbers":["เลข2หรือ3หลัก","..."]} ให้เลขนำโชค 2-4 ชุดตามตำราฝัน`,
           }],
         }),
       });
@@ -384,7 +384,7 @@ app.post('/api/dream', dreamLimiter, async (req, res) => {
       if (parsed && Array.isArray(parsed.numbers)) {
         result = {
           numbers: parsed.numbers.map((n) => String(n).replace(/\D/g, '')).filter((n) => n.length === 2 || n.length === 3).slice(0, 4),
-          interpretation: String(parsed.interpretation || '').slice(0, 300),
+          interpretation: String(parsed.interpretation || '').slice(0, 800),
           source: 'AI ทำนายฝัน',
         };
       }
