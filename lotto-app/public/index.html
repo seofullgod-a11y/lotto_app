@@ -14,13 +14,19 @@
       <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>ทุกประเภท</small></b></a>
       <nav class="nav">
         <a href="/" aria-current="page">ตรวจหวย</a>
+        <a href="/games">เกม</a>
+        <a href="/dream">ทำนายฝัน</a>
         <a href="/stats">สถิติ</a>
-        <a href="#subscribe">แจ้งเตือน</a>
       </nav>
     </div>
   </header>
 
   <main class="wrap">
+    <div class="countdown-bar" id="countdown-bar" style="display:none">
+      <div class="cd-left"><span class="cd-pulse"></span> งวดรัฐบาลถัดไปอีก <b id="cd-time">—</b></div>
+      <div class="cd-right" id="cd-viewers"></div>
+    </div>
+
     <div class="lottery-pick">
       <label for="lottery-select">เลือกประเภทหวย</label>
       <select id="lottery-select"></select>
@@ -56,6 +62,19 @@
       </div>
       <p class="hint">เราสนับสนุนการเล่นอย่างถูกกฎหมายและมีความรับผิดชอบเท่านั้น</p>
       <div class="results" id="results"></div>
+    </section>
+
+    <section class="section-gap" id="tickets-wrap">
+      <p class="eyebrow">ตั๋วของฉัน 🎟️</p>
+      <h2 class="h-section">เก็บเลขไว้ เปิดเว็บมาเช็คให้อัตโนมัติ</h2>
+      <div class="card">
+        <div class="field-row">
+          <div class="field"><input id="ticket-num" class="num" inputmode="numeric" maxlength="6" placeholder="เลขสลาก/เลขที่ลุ้น"></div>
+          <button class="btn btn-primary" id="ticket-add">บันทึกเลข</button>
+        </div>
+        <p class="hint">เก็บไว้ในเครื่องคุณเอง พอเปิดเว็บมาจะเช็คกับงวดล่าสุดให้ทันที</p>
+        <div id="ticket-list" style="margin-top:14px"></div>
+      </div>
     </section>
 
     <div class="ad-slot" id="ad-bottom"></div>

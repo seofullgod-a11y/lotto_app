@@ -119,7 +119,7 @@ export function renderLotteryPage(lottery, latest, recent, base, adsense = '') {
 
 // ---- sitemap ------------------------------------------------------------
 export function renderSitemap(base, threeDigitNumbers = [], lotteryCodes = []) {
-  const urls = ['/', '/stats'];
+  const urls = ['/', '/stats', '/games', '/dream'];
   for (const c of lotteryCodes) urls.push(`/lotto/${c}`);
   for (let i = 0; i < 100; i++) urls.push(`/huay/${String(i).padStart(2, '0')}`);
   for (const n of threeDigitNumbers) urls.push(`/huay/${n}`);

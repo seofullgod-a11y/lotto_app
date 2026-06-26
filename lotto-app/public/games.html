@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เกมทายเลขท้าย 2 ตัว — ลุ้นฟรี สะสมแต้ม | ตรวจหวย</title>
+<meta name="description" content="เกมทายเลขท้าย 2 ตัวฟรี ทายก่อนหวยออก สะสมแต้ม สตรีค ขึ้นลีดเดอร์บอร์ด เพื่อความบันเทิง">
+<meta name="theme-color" content="#0c8a63"><link rel="stylesheet" href="/styles.css">
+<style>
+.guess-input{font-size:2.4rem;text-align:center;letter-spacing:.3em;max-width:160px;margin:0 auto}
+.lb{width:100%;border-collapse:collapse}.lb td,.lb th{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left}
+.lb th{font-family:var(--display);font-size:.8rem;color:var(--muted);font-weight:600}
+.lb td.r{text-align:right;font-family:var(--tnum);font-weight:600}.lb .rank{width:34px;font-family:var(--tnum);font-weight:700;color:var(--jade)}
+.lb tr.me{background:var(--gold-soft)}
+.stat-row{display:flex;gap:12px;flex-wrap:wrap}.stat-box{flex:1 1 90px;background:var(--surface-2);border-radius:13px;padding:14px;text-align:center}
+.stat-box b{font-family:var(--tnum);font-size:1.7rem;color:var(--jade-deep);display:block}.stat-box small{color:var(--muted)}
+.medal{font-size:1.1rem}
+</style></head><body>
+<header class="site-head"><div class="wrap">
+<a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>เกมทายเลข</small></b></a>
+<nav class="nav"><a href="/">ตรวจหวย</a><a href="/games" aria-current="page">เกม</a><a href="/dream">ทำนายฝัน</a></nav>
+</div></header>
+<main class="wrap">
+<p class="eyebrow">เกมทายเลข • เพื่อความบันเทิง</p>
+<h1 class="h-section" style="font-size:1.5rem">ทายเลขท้าย 2 ตัว 🎯</h1>
+
+<div class="lottery-pick"><label for="lottery-select">เลือกหวยที่จะทาย</label><select id="lottery-select"></select></div>
+
+<section class="card" style="margin-bottom:20px">
+<div id="my-stats" class="stat-row" style="margin-bottom:18px"></div>
+<label style="text-align:center">ใส่ชื่อเล่น</label>
+<input id="nick" maxlength="24" placeholder="ชื่อเล่นของคุณ" style="text-align:center;max-width:240px;margin:0 auto 16px;font-family:var(--display)">
+<label style="text-align:center">ทายเลขท้าย 2 ตัว</label>
+<input id="guess" class="guess-input num" inputmode="numeric" maxlength="2" placeholder="00">
+<p id="pending" class="note" style="text-align:center;margin:12px 0 0"></p>
+<div style="text-align:center;margin-top:16px"><button class="btn btn-primary" id="submit">ส่งคำทาย</button></div>
+<p class="note" style="text-align:center;margin-top:12px">ทายก่อนหวยออก พอออกแล้วถ้าตรงเลขท้าย 2 ตัว = ได้แต้ม + สตรีค (ของรางวัลเป็นแต้มเสมือน ไม่ใช่เงิน)</p>
+</section>
+
+<p class="eyebrow">ลีดเดอร์บอร์ด 🏆</p>
+<section class="card"><table class="lb"><thead><tr><th></th><th>ผู้เล่น</th><th class="r">ชนะ</th><th class="r">สตรีค</th><th class="r">แต้ม</th></tr></thead><tbody id="lb"></tbody></table></section>
+</main>
+<footer class="site-foot"><div class="wrap"><span class="note">เกมเพื่อความบันเทิง ไม่มีการเดิมพันด้วยเงิน</span></div></footer>
+<script>
+const $=id=>document.getElementById(id);
+let DEVICE=localStorage.getItem('huay_device');if(!DEVICE){DEVICE='d'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('huay_device',DEVICE);}
+if(localStorage.huay_nick)$('nick').value=localStorage.huay_nick;
+let LOTTERIES=[],current='government';
+const medal=i=>['🥇','🥈','🥉'][i]||'';
+async function loadLotteries(){const{groups,all}=await(await fetch('/api/lotteries')).json();LOTTERIES=all;$('lottery-select').innerHTML=groups.map(g=>`<optgroup label="${g.category}">${g.items.map(i=>`<option value="${i.code}">${i.name}</option>`).join('')}</optgroup>`).join('');}
+async function refresh(){
+  const r=await fetch('/api/leaderboard?deviceId='+DEVICE);const{top,me}=await r.json();
+  $('my-stats').innerHTML=`<div class="stat-box"><b>${me&&me.points||0}</b><small>แต้ม</small></div><div class="stat-box"><b>${me&&me.wins||0}</b><small>ชนะ</small></div><div class="stat-box"><b>${me&&me.streak||0}🔥</b><small>สตรีคปัจจุบัน</small></div><div class="stat-box"><b>${me&&me.best_streak||0}</b><small>สตรีคสูงสุด</small></div>`;
+  const pend=me&&me.pending&&me.pending.find(p=>p.lottery===current);
+  $('pending').textContent=pend?`คำทายปัจจุบันของหวยนี้: ${pend.guess} (ส่งใหม่เพื่อแก้)`:'ยังไม่ได้ทายหวยนี้งวดนี้';
+  $('lb').innerHTML=top.length?top.map((p,i)=>`<tr><td class="rank">${medal(i)||i+1}</td><td>${p.nickname}</td><td class="r">${p.wins}</td><td class="r">${p.streak}🔥</td><td class="r">${p.points}</td></tr>`).join(''):'<tr><td colspan="5" class="note">ยังไม่มีผู้เล่น มาเป็นคนแรก!</td></tr>';
+}
+$('submit').onclick=async()=>{
+  const guess=$('guess').value.replace(/\D/g,'');if(guess.length!==2)return alert('ใส่เลข 2 หลัก');
+  const nickname=$('nick').value.trim()||'ผู้เล่น';localStorage.huay_nick=nickname;
+  const r=await fetch('/api/predict?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname,guess})});
+  if(r.ok){$('submit').textContent='ส่งแล้ว ✓';setTimeout(()=>$('submit').textContent='ส่งคำทาย',1500);refresh();}else alert('ส่งไม่สำเร็จ');
+};
+$('lottery-select').onchange=e=>{current=e.target.value;refresh();};
+(async()=>{await loadLotteries();refresh();})();
+</script></body></html>

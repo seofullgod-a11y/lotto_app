@@ -127,7 +127,8 @@ async function check() {
         const labels = res.wins.map(w => w.amount ? `${w.label} (${fmt(w.amount)})` : w.label).join(' · ');
         const totalLine = res.total ? `<div class="total">รวม ${fmt(res.total)} บาท</div>` : '';
         return `<div class="res win"><div><div class="n">${esc(res.number)}</div><span class="win-stamp">ถูกรางวัล</span></div>
-          <div class="detail"><div class="verdict">ยินดีด้วย!</div><div class="breakdown">${labels}</div>${totalLine}</div></div>`;
+          <div class="detail"><div class="verdict">ยินดีด้วย!</div><div class="breakdown">${labels}</div>${totalLine}
+          <button class="share-btn" onclick="_shareCard('${esc(res.number)}','ถูกรางวัล!')">📸 แชร์</button></div></div>`;
       }
       return `<div class="res lose"><div class="n">${esc(res.number)}</div>
         <div class="detail"><div class="verdict">ไม่ถูกรางวัล</div><div class="breakdown">งวด ${esc(data.thaiDate)}</div></div></div>`;
@@ -183,6 +184,89 @@ async function loadConfig() {
   } catch {}
 }
 
+// ---- live countdown to next government draw ----
+function fmtCountdown(ms) {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  if (d > 0) return `${d} วัน ${h} ชม. ${m} นาที`;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+async function initCountdown() {
+  let target = null, viewers = 0;
+  const pull = async () => {
+    try { const r = await fetch('/api/next-draw'); const d = await r.json(); target = new Date(d.government).getTime(); viewers = d.viewers; } catch {}
+  };
+  await pull();
+  if (!target) return;
+  $('countdown-bar').style.display = '';
+  setInterval(pull, 30000);
+  setInterval(() => {
+    if (!target) return;
+    $('cd-time').textContent = fmtCountdown(target - Date.now());
+    $('cd-viewers').innerHTML = viewers ? `👀 ${viewers} คนกำลังลุ้น` : '';
+  }, 1000);
+}
+
+// ---- my tickets (saved in this device) ----
+const TKEY = 'huay_tickets';
+const getTickets = () => { try { return JSON.parse(localStorage.getItem(TKEY) || '[]'); } catch { return []; } };
+const setTickets = (t) => localStorage.setItem(TKEY, JSON.stringify(t));
+async function renderTickets() {
+  const tickets = getTickets();
+  const box = $('ticket-list');
+  if (!tickets.length) { box.innerHTML = '<p class="note" style="margin:0">ยังไม่มีเลขที่บันทึก</p>'; return; }
+  // group by lottery, check each
+  const byLot = {};
+  tickets.forEach((t, i) => { (byLot[t.lottery] ||= []).push({ ...t, i }); });
+  const statusMap = {};
+  for (const [lot, items] of Object.entries(byLot)) {
+    try {
+      const r = await fetch(`/api/check?lottery=${lot}&numbers=${items.map(x=>x.number).join(',')}&date=latest`);
+      if (r.ok) { const d = await r.json(); d.results.forEach((res, k) => { statusMap[items[k].i] = res; }); }
+    } catch {}
+  }
+  box.innerHTML = tickets.map((t, i) => {
+    const res = statusMap[i];
+    const lotName = (LOTTERIES.find(l=>l.code===t.lottery)||{}).short || t.lottery;
+    let status = '<span class="note">รอผล</span>';
+    if (res) status = res.wins.length ? `<span class="tk-win">🎉 ถูกรางวัล${res.total?' '+res.total.toLocaleString('th-TH')+' บาท':''}</span>` : '<span class="note">ยังไม่ถูก</span>';
+    return `<div class="tk-row"><div><b class="num">${t.number}</b> <small class="note">${lotName}</small><div>${status}</div></div><button class="tk-del" data-i="${i}">ลบ</button></div>`;
+  }).join('');
+  box.querySelectorAll('.tk-del').forEach(btn => btn.onclick = () => { const t = getTickets(); t.splice(+btn.dataset.i, 1); setTickets(t); renderTickets(); });
+}
+
+// ---- share win card (canvas -> image) ----
+async function shareCard(number, label) {
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1080;
+  const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 1080, 1080);
+  g.addColorStop(0, '#14b884'); g.addColorStop(1, '#075c45');
+  x.fillStyle = g; x.fillRect(0, 0, 1080, 1080);
+  x.fillStyle = 'rgba(255,255,255,.13)'; x.beginPath(); x.arc(900, 200, 260, 0, 7); x.fill();
+  x.textAlign = 'center'; x.fillStyle = '#fff';
+  x.font = '600 52px Kanit, sans-serif'; x.fillText('ตรวจหวย', 540, 230);
+  x.font = '500 44px Kanit, sans-serif'; x.fillText(label || 'เลขของฉัน', 540, 470);
+  x.font = '700 240px Kanit, sans-serif'; x.fillText(number, 540, 700);
+  x.font = '400 38px Kanit, sans-serif'; x.fillStyle = 'rgba(255,255,255,.85)';
+  x.fillText('เช็คหวยทุกประเภทได้ที่เว็บเรา', 540, 880);
+  const blob = await new Promise(r => c.toBlob(r, 'image/png'));
+  const file = new File([blob], 'huay.png', { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: 'ตรวจหวย' }); return; } catch {}
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'huay.png'; a.click();
+}
+window._shareCard = shareCard;
+
+$('ticket-add').addEventListener('click', () => {
+  const n = $('ticket-num').value.replace(/\D/g, '');
+  if (n.length < 2) return;
+  const t = getTickets();
+  if (!t.find(x => x.number === n && x.lottery === current.code)) t.unshift({ number: n, lottery: current.code });
+  setTickets(t); $('ticket-num').value = ''; renderTickets();
+});
+
 (async () => {
   await loadLotteries();
   const q = new URLSearchParams(location.search).get('lottery');
@@ -190,4 +274,6 @@ async function loadConfig() {
   await Promise.all([loadLatest(), loadDrawList(), loadPopular()]);
   connectStream();
   loadConfig();
+  initCountdown();
+  renderTickets();
 })();

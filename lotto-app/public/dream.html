@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ทำนายฝันเป็นเลข + เลขมงคลส่วนตัว | ตรวจหวย</title>
+<meta name="description" content="เล่าความฝันแล้ว AI ตีความเป็นเลขตามตำราฝันไทย พร้อมเลขมงคลจากวันเกิด เพื่อความบันเทิง">
+<meta name="theme-color" content="#0c8a63"><link rel="stylesheet" href="/styles.css">
+<style>
+.num-out{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.num-out a{display:flex;flex-direction:column;align-items:center;min-width:74px;padding:12px 16px;background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:14px;text-decoration:none;color:#8a6608}
+.num-out a b{font-family:var(--tnum);font-size:1.7rem}.num-out a small{font-size:.66rem;color:var(--muted);margin-top:2px}
+.interp{background:var(--surface-2);border-radius:13px;padding:14px;margin-top:14px;font-size:.95rem}
+.tabs{display:flex;gap:8px;margin-bottom:20px}.tabs button{flex:1;padding:11px;border:1.5px solid var(--line);background:var(--surface);border-radius:13px;font-family:var(--display);font-weight:600;cursor:pointer;color:var(--muted)}
+.tabs button.on{background:var(--jade);color:#fff;border-color:var(--jade)}
+</style></head><body>
+<header class="site-head"><div class="wrap">
+<a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>ทำนายฝัน</small></b></a>
+<nav class="nav"><a href="/">ตรวจหวย</a><a href="/games">เกม</a><a href="/dream" aria-current="page">ทำนายฝัน</a></nav>
+</div></header>
+<main class="wrap">
+<div class="tabs"><button id="t-dream" class="on">🐍 ทำนายฝัน</button><button id="t-lucky">🔢 เลขมงคล</button></div>
+
+<section id="panel-dream">
+<p class="eyebrow">ทำนายฝันเป็นเลข • เพื่อความบันเทิง</p>
+<h1 class="h-section" style="font-size:1.5rem">ฝันเห็นอะไร? แปลงเป็นเลข</h1>
+<section class="card">
+<label>เล่าความฝันของคุณ</label>
+<textarea id="dream" rows="3" placeholder="เช่น ฝันเห็นงูใหญ่เลื้อยเข้าบ้าน"></textarea>
+<div style="margin-top:14px"><button class="btn btn-primary" id="dream-go">ทำนาย</button></div>
+<div id="dream-out"></div>
+</section>
+</section>
+
+<section id="panel-lucky" style="display:none">
+<p class="eyebrow">เลขมงคลส่วนตัว • เพื่อความบันเทิง</p>
+<h1 class="h-section" style="font-size:1.5rem">เลขมงคลจากวันเกิด</h1>
+<section class="card">
+<label>วันเกิดของคุณ</label>
+<input id="bday" type="date">
+<div style="margin-top:14px"><button class="btn btn-primary" id="lucky-go">คำนวณเลขมงคล</button></div>
+<div id="lucky-out"></div>
+</section>
+</section>
+<p class="note section-gap">ทั้งหมดเพื่อความบันเทิง การออกรางวัลเป็นเรื่องของความน่าจะเป็น ไม่สามารถทำนายได้จริง</p>
+</main>
+<footer class="site-foot"><div class="wrap"><span class="note">เพื่อความบันเทิงเท่านั้น</span></div></footer>
+<script>
+const $=id=>document.getElementById(id);
+function chips(nums,labels){return `<div class="num-out">${nums.map(n=>`<a href="/huay/${n}"><b>${n}</b><small>ดูสถิติ</small></a>`).join('')}</div>`;}
+$('t-dream').onclick=()=>{$('t-dream').classList.add('on');$('t-lucky').classList.remove('on');$('panel-dream').style.display='';$('panel-lucky').style.display='none';};
+$('t-lucky').onclick=()=>{$('t-lucky').classList.add('on');$('t-dream').classList.remove('on');$('panel-lucky').style.display='';$('panel-dream').style.display='none';};
+$('dream-go').onclick=async()=>{
+  const text=$('dream').value.trim();if(!text)return;
+  $('dream-out').innerHTML='<p class="note">กำลังทำนาย…</p>';
+  try{const r=await fetch('/api/dream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});const d=await r.json();
+  if(!r.ok){$('dream-out').innerHTML=`<p class="note">${d.error||'ทำนายไม่สำเร็จ'}</p>`;return;}
+  $('dream-out').innerHTML=`<div class="interp">${d.interpretation||''}</div>${chips(d.numbers||[])}<p class="note" style="margin-top:10px">${d.note||''}</p>`;
+  }catch{$('dream-out').innerHTML='<p class="note">เกิดข้อผิดพลาด</p>';}
+};
+// numerology client-side
+function reduce2(n){let x=Math.abs(parseInt(n,10)||0);while(x>=100)x=String(x).split('').reduce((s,d)=>s+ +d,0);return String(x).padStart(2,'0');}
+function dsum(n){return String(n).split('').reduce((s,x)=>s+ +x,0);}
+$('lucky-go').onclick=()=>{
+  const v=$('bday').value;const m=v.match(/(\d{4})-(\d{2})-(\d{2})/);if(!m)return alert('เลือกวันเกิด');
+  const dd=+m[3],mm=+m[2],yy=+m[1];
+  const core=reduce2(dd+mm+dsum(yy)),a=String(dd).padStart(2,'0'),bb=reduce2(dd*mm),three=String((dd*100+mm*7+dsum(yy))%1000).padStart(3,'0');
+  const nums=[...new Set([core,a,bb,three])];
+  $('lucky-out').innerHTML=`<div class="interp">เลขมงคลของคุณจากวันเกิด — กดที่เลขเพื่อดูว่าออกบ่อยแค่ไหน</div>${chips(nums)}`;
+};
+</script></body></html>

@@ -12,6 +12,7 @@ import { renderNumberPage, renderLotteryPage, renderSitemap } from './seo.js';
 import { syncLatest } from './sources.js';
 import { getProvider } from './providers.js';
 import { buildKeywordMap, parseResultMessage } from './parse.js';
+import { scoreGuess, winPoints, dreamFallback } from './games.js';
 import { startBot, notifyDraw } from './telegram.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -47,6 +48,24 @@ async function initDb() {
       key   TEXT PRIMARY KEY,
       count BIGINT NOT NULL DEFAULT 0,
       updated_at TIMESTAMPTZ DEFAULT now()
+    );
+    CREATE TABLE IF NOT EXISTS predictions (
+      lottery   TEXT NOT NULL,
+      device_id TEXT NOT NULL,
+      nickname  TEXT NOT NULL DEFAULT 'ผู้เล่น',
+      guess     TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT now(),
+      PRIMARY KEY (lottery, device_id)
+    );
+    CREATE TABLE IF NOT EXISTS players (
+      device_id   TEXT PRIMARY KEY,
+      nickname    TEXT NOT NULL DEFAULT 'ผู้เล่น',
+      points      INT NOT NULL DEFAULT 0,
+      wins        INT NOT NULL DEFAULT 0,
+      plays       INT NOT NULL DEFAULT 0,
+      streak      INT NOT NULL DEFAULT 0,
+      best_streak INT NOT NULL DEFAULT 0,
+      updated_at  TIMESTAMPTZ DEFAULT now()
     );
   `);
   // Migrate older single-lottery deployments (PK was on date alone). Each step
@@ -95,6 +114,31 @@ function bump(key) {
 }
 
 const ADSENSE = process.env.ADSENSE_CLIENT || ''; // e.g. ca-pub-XXXXXXXX
+
+// Score all pending guesses for a lottery against a freshly finalized draw.
+async function scoreForDraw(lottery, draw) {
+  const back2 = lotteryKind(lottery) === 'government' ? draw.back2 : draw.bottom2;
+  if (!back2) return;
+  const { rows } = await pool.query('SELECT device_id, nickname, guess FROM predictions WHERE lottery=$1', [lottery]);
+  if (!rows.length) return;
+  for (const r of rows) {
+    const cur = await pool.query('SELECT points, wins, plays, streak, best_streak FROM players WHERE device_id=$1', [r.device_id]);
+    const p = cur.rows[0] || { points: 0, wins: 0, plays: 0, streak: 0, best_streak: 0 };
+    const win = scoreGuess(r.guess, back2);
+    const streak = win ? p.streak + 1 : 0;
+    const points = p.points + (win ? winPoints(streak) : 0);
+    const wins = p.wins + (win ? 1 : 0);
+    const plays = p.plays + 1;
+    const best = Math.max(p.best_streak, streak);
+    await pool.query(
+      `INSERT INTO players(device_id, nickname, points, wins, plays, streak, best_streak, updated_at)
+       VALUES($1,$2,$3,$4,$5,$6,$7,now())
+       ON CONFLICT (device_id) DO UPDATE SET nickname=$2, points=$3, wins=$4, plays=$5, streak=$6, best_streak=$7, updated_at=now()`,
+      [r.device_id, r.nickname, points, wins, plays, streak, best]
+    );
+  }
+  await pool.query('DELETE FROM predictions WHERE lottery=$1', [lottery]);
+}
 
 // resolve ?lottery= (default government), 400 if unknown
 function lotteryOf(req) {
@@ -208,6 +252,93 @@ app.get('/api/popular', async (req, res) => {
   res.json({ lottery, trending, frequent: frequent.slice(0, 8) });
 });
 
+// ---- prediction game ----------------------------------------------------
+const predictLimiter = rateLimit({ windowMs: 60_000, max: 20, standardHeaders: true, legacyHeaders: false });
+app.post('/api/predict', predictLimiter, async (req, res) => {
+  const lottery = lotteryOf(req);
+  if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });
+  const deviceId = String(req.body?.deviceId || '').slice(0, 64);
+  const guess = String(req.body?.guess || '').replace(/\D/g, '').slice(0, 2).padStart(2, '0');
+  const nickname = String(req.body?.nickname || 'ผู้เล่น').trim().slice(0, 24) || 'ผู้เล่น';
+  if (!deviceId || guess.length !== 2) return res.status(400).json({ error: 'ต้องมี deviceId และเลข 2 หลัก' });
+  await pool.query(
+    `INSERT INTO predictions(lottery, device_id, nickname, guess) VALUES($1,$2,$3,$4)
+     ON CONFLICT (lottery, device_id) DO UPDATE SET guess=$4, nickname=$3, created_at=now()`,
+    [lottery, deviceId, nickname, guess]
+  );
+  res.json({ ok: true, lottery, guess });
+});
+
+app.get('/api/leaderboard', async (req, res) => {
+  const deviceId = String(req.query.deviceId || '');
+  const { rows } = await pool.query(
+    'SELECT nickname, points, wins, plays, streak, best_streak FROM players ORDER BY points DESC, wins DESC LIMIT 20'
+  );
+  let me = null;
+  if (deviceId) {
+    const r = await pool.query('SELECT nickname, points, wins, plays, streak, best_streak FROM players WHERE device_id=$1', [deviceId]);
+    me = r.rows[0] || null;
+    const p = await pool.query('SELECT lottery, guess FROM predictions WHERE device_id=$1', [deviceId]);
+    if (me) me.pending = p.rows;
+    else me = { pending: p.rows };
+  }
+  res.json({ top: rows, me });
+});
+
+// ---- dream -> numbers (AI with static fallback) -------------------------
+const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || '';
+const dreamLimiter = rateLimit({ windowMs: 60_000, max: 12, standardHeaders: true, legacyHeaders: false });
+app.post('/api/dream', dreamLimiter, async (req, res) => {
+  const text = String(req.body?.text || '').slice(0, 400).trim();
+  if (!text) return res.status(400).json({ error: 'กรุณาเล่าความฝัน' });
+  let result = null;
+  if (ANTHROPIC_KEY) {
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 300,
+          messages: [{
+            role: 'user',
+            content: `คุณคือหมอดูทำนายฝันไทยเพื่อความบันเทิง ผู้ใช้ฝันว่า: "${text}"\nตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น รูปแบบ: {"numbers":["เลข2หรือ3หลัก","..."],"interpretation":"คำทำนายสั้นๆ 1-2 ประโยค"} ให้เลข 2-3 ชุด ตามตำราฝันไทย`,
+          }],
+        }),
+      });
+      const data = await r.json();
+      const txt = (data.content || []).map((c) => c.text || '').join('').replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(txt);
+      if (parsed && Array.isArray(parsed.numbers)) {
+        result = {
+          numbers: parsed.numbers.map((n) => String(n).replace(/\D/g, '')).filter((n) => n.length === 2 || n.length === 3).slice(0, 4),
+          interpretation: String(parsed.interpretation || '').slice(0, 300),
+          source: 'AI ทำนายฝัน',
+        };
+      }
+    } catch (e) { /* fall through to static */ }
+  }
+  if (!result || !result.numbers.length) result = dreamFallback(text);
+  res.json({ ...result, note: 'เพื่อความบันเทิงเท่านั้น' });
+});
+
+// ---- live: next draw countdown + viewers --------------------------------
+function nextGovernmentDraw() {
+  // GLO draws on the 1st and 16th, announced ~17:00 (Asia/Bangkok, UTC+7)
+  const now = new Date();
+  const bkk = new Date(now.getTime() + 7 * 3600_000);
+  const y = bkk.getUTCFullYear(), m = bkk.getUTCMonth(), d = bkk.getUTCDate();
+  const slots = [];
+  for (const [mm, dd] of [[m, 1], [m, 16], [m + 1, 1]]) {
+    slots.push(Date.UTC(y, mm, dd, 17 - 7, 0, 0)); // 17:00 BKK -> UTC
+  }
+  const next = slots.find((t) => t > now.getTime()) || slots[slots.length - 1];
+  return new Date(next).toISOString();
+}
+app.get('/api/next-draw', (req, res) => {
+  res.json({ government: nextGovernmentDraw(), viewers: clients.size });
+});
+
 // --- admin (live entry) ---------------------------------------------------
 function requireAdmin(req, res, next) {
   const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -226,7 +357,10 @@ app.post('/api/admin/draw', requireAdmin, async (req, res) => {
   await upsertDraw(lottery, draw);
   bustStats(lottery);
   broadcast('draw', { lottery, kind: lotteryKind(lottery), draw, thaiDate: isoToThaiDate(draw.date), final: !!final });
-  if (final) notifyDraw(pool, lottery, draw).catch((e) => console.error('[notify]', e.message));
+  if (final) {
+    notifyDraw(pool, lottery, draw).catch((e) => console.error('[notify]', e.message));
+    scoreForDraw(lottery, draw).catch((e) => console.error('[score]', e.message));
+  }
   res.json({ ok: true, lottery, draw });
 });
 
@@ -348,6 +482,8 @@ app.get('/robots.txt', (req, res) => {
 app.get('/healthz', (req, res) => res.json({ ok: true }));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'stats.html')));
+app.get('/games', (req, res) => res.sendFile(path.join(__dirname, 'public', 'games.html')));
+app.get('/dream', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dream.html')));
 
   // Pull the latest GLO result and store it (used by the scheduler).
   async function autoSync() {
@@ -357,6 +493,7 @@ app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sta
     bustStats('government');
     broadcast('draw', { lottery: 'government', kind: 'government', draw, thaiDate: isoToThaiDate(draw.date), final: true });
     if (!existing) notifyDraw(pool, 'government', draw).catch(() => {});
+    scoreForDraw('government', draw).catch(() => {});
     return { source, date: draw.date };
   }
 
@@ -375,6 +512,7 @@ app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sta
       bustStats(r.lottery);
       broadcast('draw', { lottery: r.lottery, kind: 'simple', draw, thaiDate: isoToThaiDate(draw.date), final: true });
       if (!existing) notifyDraw(pool, r.lottery, draw).catch(() => {});
+      scoreForDraw(r.lottery, draw).catch(() => {});
       updated++;
     }
     return { updated };
@@ -389,6 +527,7 @@ app.get('/stats', (req, res) => res.sendFile(path.join(__dirname, 'public', 'sta
     bustStats(lottery);
     broadcast('draw', { lottery, kind: 'simple', draw, thaiDate: isoToThaiDate(draw.date), final: true });
     if (!existing.top3 && !existing.bottom2) notifyDraw(pool, lottery, draw).catch(() => {});
+    scoreForDraw(lottery, draw).catch(() => {});
   }
 
   return { app, initDb, autoSync, syncProviders, ingestResult };
