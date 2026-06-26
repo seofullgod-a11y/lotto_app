@@ -6,47 +6,97 @@
 <meta name="description" content="เกมทายเลขท้าย 2 ตัวฟรี ทายก่อนหวยออก สะสมแต้ม สตรีค ขึ้นลีดเดอร์บอร์ด เพื่อความบันเทิง">
 <meta name="theme-color" content="#0c8a63"><link rel="stylesheet" href="/styles.css">
 <style>
-.steps{display:flex;gap:8px;margin-bottom:20px}.steps div{flex:1;background:var(--surface-2);border-radius:13px;padding:12px 10px;text-align:center;font-size:.82rem}
-.steps b{display:block;font-family:var(--tnum);font-size:1.3rem;color:var(--jade)}
-.guess-input{font-size:2.6rem;text-align:center;letter-spacing:.3em;max-width:170px;margin:0 auto}
-.confirm{background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:14px;padding:18px;text-align:center;margin-bottom:16px}
-.confirm .big{font-family:var(--tnum);font-size:2.6rem;font-weight:700;color:#8a6608;letter-spacing:.2em}
-.lb{width:100%;border-collapse:collapse}.lb td,.lb th{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left}
+:root{--g1:#14b884;--g2:#0c8a63;--g3:#075c45}
+.reveal{opacity:0;transform:translateY(14px);animation:rise .55s ease forwards}
+.reveal:nth-child(2){animation-delay:.08s}.reveal:nth-child(3){animation-delay:.16s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* hero */
+.game-hero{position:relative;overflow:hidden;border-radius:22px;padding:30px 22px 26px;text-align:center;color:#fff;background:linear-gradient(120deg,#14b884,#0c8a63 40%,#075c45);background-size:200% 200%;animation:flow 8s ease infinite;margin-bottom:22px}
+@keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.game-hero h1{font-family:var(--display);font-size:1.7rem;font-weight:700;margin:0 0 4px;position:relative}
+.game-hero p{opacity:.9;margin:0;font-size:.95rem;position:relative}
+.floaty{position:absolute;font-size:2rem;opacity:.35;animation:float 5s ease-in-out infinite}
+.floaty.a{top:14px;left:18px}.floaty.b{top:60px;right:24px;animation-delay:1.2s}.floaty.c{bottom:14px;left:40px;animation-delay:2.1s;font-size:1.5rem}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-12px) rotate(8deg)}}
+
+/* reels */
+.reels{display:flex;justify-content:center;gap:14px;margin:18px 0}
+.reel{width:88px;height:118px;border-radius:18px;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.32);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:4.2rem;color:#fff;box-shadow:inset 0 -8px 22px rgba(0,0,0,.18);position:relative;overflow:hidden}
+.reel.roll{animation:shake .12s linear infinite}
+@keyframes shake{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
+.reel.pop{animation:pop .42s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+.dice-btn{background:#fff;color:var(--jade-deep);border:none;border-radius:999px;padding:13px 26px;font-family:var(--display);font-weight:600;font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);transition:.15s;position:relative}
+.dice-btn:hover{transform:translateY(-2px)}.dice-btn:active{transform:scale(.96)}
+.dice-btn .die{display:inline-block;animation:spin 4s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+
+/* steps */
+.steps{display:flex;gap:8px;margin-bottom:20px}.steps div{flex:1;background:var(--surface-2);border-radius:14px;padding:12px 10px;text-align:center;font-size:.8rem;line-height:1.4}
+.steps b{display:grid;place-items:center;width:30px;height:30px;margin:0 auto 6px;border-radius:50%;background:var(--jade);color:#fff;font-family:var(--tnum);font-size:1rem}
+
+/* submit */
+.play-btn{width:100%;background:linear-gradient(120deg,var(--gold),#e0a92a);color:#3a2c00;border:none;border-radius:15px;padding:17px;font-family:var(--display);font-weight:700;font-size:1.18rem;cursor:pointer;box-shadow:0 8px 22px rgba(200,149,26,.4);transition:.15s;animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 8px 22px rgba(200,149,26,.35)}50%{box-shadow:0 8px 34px rgba(200,149,26,.65)}}
+.play-btn:hover{transform:translateY(-2px)}.play-btn:active{transform:scale(.97)}.play-btn:disabled{opacity:.6;animation:none}
+
+/* confirm */
+.confirm{background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;padding:20px;text-align:center;margin-bottom:16px;animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
+.confirm .big{font-family:var(--tnum);font-size:3rem;font-weight:700;color:#8a6608;letter-spacing:.2em;margin:6px 0}
+
+/* stats */
+.stat-row{display:flex;gap:10px;flex-wrap:wrap}.stat-box{flex:1 1 80px;background:var(--surface-2);border-radius:14px;padding:15px 10px;text-align:center;transition:.2s}
+.stat-box:hover{transform:translateY(-3px);background:#eaf3ef}
+.stat-box b{font-family:var(--tnum);font-size:1.8rem;color:var(--jade-deep);display:block;line-height:1}.stat-box small{color:var(--muted);font-size:.74rem}
+.flame{display:inline-block;animation:flicker 1.4s ease-in-out infinite}@keyframes flicker{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.18) rotate(4deg)}}
+
+/* leaderboard */
+.lb{width:100%;border-collapse:collapse}.lb td,.lb th{padding:12px;border-bottom:1px solid var(--line);text-align:left}
 .lb th{font-family:var(--display);font-size:.8rem;color:var(--muted);font-weight:600}
-.lb td.r{text-align:right;font-family:var(--tnum);font-weight:600}.lb .rank{width:34px;font-family:var(--tnum);font-weight:700;color:var(--jade)}
-.lb tr.me{background:var(--gold-soft)}
-.stat-row{display:flex;gap:10px;flex-wrap:wrap}.stat-box{flex:1 1 80px;background:var(--surface-2);border-radius:13px;padding:14px;text-align:center}
-.stat-box b{font-family:var(--tnum);font-size:1.7rem;color:var(--jade-deep);display:block}.stat-box small{color:var(--muted)}
+.lb td.r{text-align:right;font-family:var(--tnum);font-weight:600}.lb .rank{width:38px;font-family:var(--tnum);font-weight:700;color:var(--jade);font-size:1.1rem}
+.lb tr.me{background:var(--gold-soft);font-weight:600}
+.lb tr{transition:.15s}.lb tbody tr:hover{background:var(--surface-2)}
+.shine{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.6) 50%,transparent 70%);background-size:200% 100%;animation:shine 2.5s linear infinite;-webkit-background-clip:text;background-clip:text}
+@keyframes shine{to{background-position:-200% 0}}
+
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
+<canvas id="fx"></canvas>
 <header class="site-head"><div class="wrap">
 <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>เกมทายเลข</small></b></a>
 <nav class="nav"><a href="/">ตรวจหวย</a><a href="/games" aria-current="page">เกม</a><a href="/dream">ทำนายฝัน</a></nav>
 </div></header>
 <main class="wrap">
-<p class="eyebrow">เกมทายเลข • เพื่อความบันเทิง</p>
-<h1 class="h-section" style="font-size:1.5rem">ทายเลขท้าย 2 ตัว 🎯</h1>
-
-<div class="steps">
-<div><b>1</b>ทายเลขไว้<br>ก่อนหวยออก</div>
-<div><b>2</b>รอหวยออก<br>จริง</div>
-<div><b>3</b>ตรง = ได้แต้ม<br>+ สตรีค 🔥</div>
-</div>
-
-<div class="lottery-pick"><label for="lottery-select">เลือกหวยที่จะทาย</label><select id="lottery-select"></select></div>
-
-<section class="card" style="margin-bottom:20px">
-<div id="my-stats" class="stat-row" style="margin-bottom:18px"></div>
-<div id="confirm-box"></div>
-<label style="text-align:center">ใส่ชื่อเล่น</label>
-<input id="nick" maxlength="24" placeholder="ชื่อเล่นของคุณ" style="text-align:center;max-width:240px;margin:0 auto 16px;font-family:var(--display)">
-<label style="text-align:center">ทายเลขท้าย 2 ตัว</label>
-<input id="guess" class="guess-input num" inputmode="numeric" maxlength="2" placeholder="00">
-<div style="text-align:center;margin-top:18px"><button class="btn btn-primary" id="submit">ส่งคำทาย</button></div>
-<p class="note" style="text-align:center;margin-top:12px">ของรางวัลเป็นแต้มเสมือน ไม่ใช่เงิน • ทายได้ 1 ครั้งต่อหวยต่องวด (ส่งใหม่เพื่อเปลี่ยน)</p>
+<section class="game-hero reveal">
+  <span class="floaty a">🎯</span><span class="floaty b">🍀</span><span class="floaty c">🎰</span>
+  <h1>ทายเลขท้าย 2 ตัว</h1>
+  <p>ทายก่อนหวยออก · ตรงปั๊บได้แต้ม · ไต่ลีดเดอร์บอร์ด</p>
+  <div class="reels"><div class="reel" id="r0">?</div><div class="reel" id="r1">?</div></div>
+  <button class="dice-btn" id="roll"><span class="die">🎲</span> สุ่มเลขนำโชค</button>
 </section>
 
-<p class="eyebrow">ลีดเดอร์บอร์ด 🏆</p>
-<section class="card"><table class="lb"><thead><tr><th></th><th>ผู้เล่น</th><th class="r">ชนะ</th><th class="r">สตรีค</th><th class="r">แต้ม</th></tr></thead><tbody id="lb"></tbody></table></section>
+<div class="steps reveal">
+<div><b>1</b>ทายเลขไว้ก่อนหวยออก</div>
+<div><b>2</b>รอหวยออกจริง</div>
+<div><b>3</b>ตรง = ได้แต้ม + สตรีค</div>
+</div>
+
+<div class="lottery-pick reveal"><label for="lottery-select">เลือกหวยที่จะทาย</label><select id="lottery-select"></select></div>
+
+<section class="card reveal" style="margin-bottom:20px">
+<div id="my-stats" class="stat-row" style="margin-bottom:18px"></div>
+<div id="confirm-box"></div>
+<label style="text-align:center">ชื่อเล่น</label>
+<input id="nick" maxlength="24" placeholder="ชื่อเล่นของคุณ" style="text-align:center;max-width:240px;margin:0 auto 14px;font-family:var(--display)">
+<label style="text-align:center">หรือพิมพ์เลขเอง</label>
+<input id="guess" inputmode="numeric" maxlength="2" placeholder="00" style="text-align:center;font-family:var(--tnum);font-size:1.8rem;letter-spacing:.2em;max-width:140px;margin:0 auto 18px">
+<button class="play-btn" id="submit">🎯 ส่งคำทาย</button>
+<p class="note" style="text-align:center;margin-top:12px">ของรางวัลเป็นแต้มเสมือน ไม่ใช่เงิน · ทาย 1 ครั้งต่องวด (ส่งใหม่เพื่อเปลี่ยน)</p>
+</section>
+
+<p class="eyebrow">ลีดเดอร์บอร์ด <span class="shine">🏆</span></p>
+<section class="card reveal"><table class="lb"><thead><tr><th></th><th>ผู้เล่น</th><th class="r">ชนะ</th><th class="r">สตรีค</th><th class="r">แต้ม</th></tr></thead><tbody id="lb"></tbody></table></section>
 </main>
 <footer class="site-foot"><div class="wrap"><span class="note">เกมเพื่อความบันเทิง ไม่มีการเดิมพันด้วยเงิน</span></div></footer>
 <script>
@@ -56,24 +106,39 @@ if(localStorage.huay_nick)$('nick').value=localStorage.huay_nick;
 let LOTTERIES=[],current='government';
 const medal=i=>['🥇','🥈','🥉'][i]||'';
 const lotName=c=>(LOTTERIES.find(l=>l.code===c)||{}).short||c;
+
+// ---- reels ----
+function setReels(v,pop){const s=String(v).padStart(2,'0');[['r0',s[0]],['r1',s[1]]].forEach(([id,d])=>{const el=$(id);el.textContent=d;if(pop){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}});}
+$('guess').addEventListener('input',()=>{const v=$('guess').value.replace(/\D/g,'');if(v.length)setReels(v.padStart(2,'0').slice(-2),true);else{$('r0').textContent='?';$('r1').textContent='?';}});
+$('roll').onclick=()=>{
+  $('r0').classList.add('roll');$('r1').classList.add('roll');
+  let t=0;const iv=setInterval(()=>{$('r0').textContent=Math.floor(Math.random()*10);$('r1').textContent=Math.floor(Math.random()*10);t+=80;
+    if(t>=700){clearInterval(iv);$('r0').classList.remove('roll');$('r1').classList.remove('roll');const n=String(Math.floor(Math.random()*100)).padStart(2,'0');$('guess').value=n;setReels(n,true);}
+  },80);
+};
+
+// ---- confetti ----
+const cv=$('fx'),cx=cv.getContext('2d');function fit(){cv.width=innerWidth;cv.height=innerHeight;}fit();addEventListener('resize',fit);
+function confetti(){const cols=['#14b884','#c8951a','#0c8a63','#f0c44a','#ff6b6b'];const P=[];for(let i=0;i<120;i++)P.push({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,g:.4,s:Math.random()*7+4,c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.4});let f=0;(function loop(){cx.clearRect(0,0,cv.width,cv.height);f++;P.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);cx.restore();});if(f<110)requestAnimationFrame(loop);else cx.clearRect(0,0,cv.width,cv.height);})();}
+
 async function loadLotteries(){const{groups,all}=await(await fetch('/api/lotteries')).json();LOTTERIES=all;$('lottery-select').innerHTML=groups.map(g=>`<optgroup label="${g.category}">${g.items.map(i=>`<option value="${i.code}">${i.name}</option>`).join('')}</optgroup>`).join('');}
 async function refresh(){
-  const r=await fetch('/api/leaderboard?deviceId='+DEVICE);const{top,me}=await r.json();
-  $('my-stats').innerHTML=`<div class="stat-box"><b>${me&&me.points||0}</b><small>แต้ม</small></div><div class="stat-box"><b>${me&&me.wins||0}</b><small>ชนะ</small></div><div class="stat-box"><b>${me&&me.streak||0}🔥</b><small>สตรีค</small></div><div class="stat-box"><b>${me&&me.best_streak||0}</b><small>สตรีคสูงสุด</small></div>`;
+  const{top,me}=await(await fetch('/api/leaderboard?deviceId='+DEVICE)).json();
+  $('my-stats').innerHTML=`<div class="stat-box"><b>${me&&me.points||0}</b><small>แต้ม</small></div><div class="stat-box"><b>${me&&me.wins||0}</b><small>ชนะ</small></div><div class="stat-box"><b>${me&&me.streak||0}<span class="flame">🔥</span></b><small>สตรีค</small></div><div class="stat-box"><b>${me&&me.best_streak||0}</b><small>สูงสุด</small></div>`;
   const pend=me&&me.pending&&me.pending.find(p=>p.lottery===current);
-  $('confirm-box').innerHTML=pend?`<div class="confirm">✅ คุณทาย${lotName(current)}ไว้แล้ว<div class="big">${pend.guess}</div><small class="note">รอหวยออก แล้วกลับมาเช็คแต้ม • ส่งใหม่เพื่อเปลี่ยนเลข</small></div>`:'';
+  $('confirm-box').innerHTML=pend?`<div class="confirm">✅ คุณทาย${lotName(current)}ไว้แล้ว<div class="big">${pend.guess}</div><small class="note">รอหวยออก แล้วกลับมาเช็คแต้ม · ส่งใหม่เพื่อเปลี่ยนเลข</small></div>`:'';
   $('lb').innerHTML=top.length?top.map((p,i)=>`<tr${me&&p.nickname===me.nickname?' class="me"':''}><td class="rank">${medal(i)||i+1}</td><td>${p.nickname}</td><td class="r">${p.wins}</td><td class="r">${p.streak}🔥</td><td class="r">${p.points}</td></tr>`).join(''):'<tr><td colspan="5" class="note">ยังไม่มีผู้เล่น มาเป็นคนแรก!</td></tr>';
 }
 $('submit').onclick=async()=>{
-  const guess=$('guess').value.replace(/\D/g,'');if(guess.length!==2)return alert('ใส่เลข 2 หลัก เช่น 25');
+  const guess=$('guess').value.replace(/\D/g,'');if(guess.length!==2)return alert('ใส่เลข 2 หลัก หรือกดสุ่มเลขนำโชค 🎲');
   const nickname=$('nick').value.trim()||'ผู้เล่น';localStorage.huay_nick=nickname;
   $('submit').disabled=true;$('submit').textContent='กำลังส่ง…';
   try{
     const r=await fetch('/api/predict?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname,guess})});
-    if(r.ok){$('guess').value='';await refresh();$('confirm-box').scrollIntoView({behavior:'smooth',block:'center'});}
+    if(r.ok){confetti();$('guess').value='';await refresh();$('confirm-box').scrollIntoView({behavior:'smooth',block:'center'});}
     else{const d=await r.json();alert(d.error||'ส่งไม่สำเร็จ');}
   }catch{alert('เกิดข้อผิดพลาด');}
-  $('submit').disabled=false;$('submit').textContent='ส่งคำทาย';
+  $('submit').disabled=false;$('submit').textContent='🎯 ส่งคำทาย';
 };
 $('lottery-select').onchange=e=>{current=e.target.value;refresh();};
 (async()=>{await loadLotteries();refresh();})();

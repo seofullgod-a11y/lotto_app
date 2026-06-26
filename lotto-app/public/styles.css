@@ -222,3 +222,17 @@ ul.clean li { padding: 10px 14px; background: var(--surface-2); border-radius: v
 /* ---- share button ---- */
 .share-btn { margin-top: 8px; background: var(--ink); color: #fff; border: none; border-radius: 9px; padding: 7px 14px; font-family: var(--display); font-weight: 500; font-size: .82rem; cursor: pointer; }
 .share-btn:hover { background: #0a221c; }
+
+/* ---- promo cards (homepage -> games/dream) ---- */
+.promo-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.promo { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 4px; padding: 22px; border-radius: 18px; text-decoration: none; color: #fff; min-height: 150px; transition: transform .18s, box-shadow .18s; }
+.promo:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,.16); }
+.promo-game { background: linear-gradient(135deg, #14b884, #0c8a63 55%, #075c45); }
+.promo-dream { background: linear-gradient(135deg, #3a5da8, #243b6b 50%, #0c8a63); }
+.promo-emoji { font-size: 2.4rem; line-height: 1; transition: transform .25s; }
+.promo:hover .promo-emoji { transform: scale(1.18) rotate(8deg); }
+.promo-t { font-family: var(--display); font-weight: 700; font-size: 1.18rem; margin-top: 6px; }
+.promo-s { font-size: .82rem; opacity: .9; line-height: 1.45; }
+.promo-go { margin-top: auto; font-family: var(--display); font-weight: 600; font-size: .9rem; opacity: .95; }
+.promo::after { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.1); }
+@media (max-width: 560px) { .promo-cols { grid-template-columns: 1fr; } .promo { min-height: 0; } }
