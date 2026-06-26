@@ -263,7 +263,22 @@ app.get('/api/stats', async (req, res) => {
   res.json({ lottery, kind: lotteryKind(lottery), ...(await getStats(lottery)) });
 });
 
-// public: popular numbers — trending (most-checked) + frequent (stats)
+// real historical stats for a single number (powers number detail cards)
+app.get('/api/number/:n', async (req, res) => {
+  const n = (req.params.n || '').replace(/\D/g, '');
+  if (n.length !== 2 && n.length !== 3) return res.status(400).json({ error: 'เลขต้อง 2-3 หลัก' });
+  const draws = await allDraws('government');
+  const h = numberHistory(n, draws);
+  res.json({
+    number: n,
+    total: h.total,
+    lastDate: h.lastDate,
+    lastThai: h.lastDate ? isoToThaiDate(h.lastDate) : null,
+    roles: h.byRole,
+    totalDraws: draws.length,
+    url: `/huay/${n}`,
+  });
+});
 app.get('/api/popular', async (req, res) => {
   const lottery = lotteryOf(req);
   if (!lottery) return res.status(400).json({ error: 'ประเภทหวยไม่ถูกต้อง' });

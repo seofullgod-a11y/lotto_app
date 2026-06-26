@@ -58,6 +58,7 @@
 .lb tr.me{background:var(--gold-soft);font-weight:600}.lb tbody tr:hover{background:var(--surface-2)}
 .shine{animation:shinep 2s ease-in-out infinite}@keyframes shinep{0%,100%{opacity:1}50%{opacity:.5}}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+.guess-stat{font-size:.84rem;color:var(--muted);text-align:center;margin:0 0 14px;min-height:18px}.guess-stat b{color:var(--ink)}.guess-stat a{color:var(--jade-deep);font-weight:600;text-decoration:none}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important}.reveal{opacity:1;transform:none}}
 </style></head><body>
 <canvas id="fx"></canvas>
@@ -87,7 +88,8 @@
 <div class="reels"><div class="reel" id="r0">?</div><div class="reel" id="r1">?</div></div>
 <div style="text-align:center;margin-bottom:14px"><button class="dice-btn" id="roll"><span class="die">🎲</span> สุ่มเลขนำโชค</button></div>
 <label style="text-align:center">หรือพิมพ์เลขเอง</label>
-<input id="guess" inputmode="numeric" maxlength="2" placeholder="00" style="text-align:center;font-family:var(--tnum);font-size:1.8rem;letter-spacing:.2em;max-width:140px;margin:0 auto 16px">
+<input id="guess" inputmode="numeric" maxlength="2" placeholder="00" style="text-align:center;font-family:var(--tnum);font-size:1.8rem;letter-spacing:.2em;max-width:140px;margin:0 auto 8px">
+<div id="guess-stat" class="guess-stat"></div>
 <button class="play-btn" id="submit">🎯 ส่งคำทาย (ถูกเป๊ะ +10)</button>
 <div id="confirm-num"></div>
 </section>
@@ -136,8 +138,9 @@ $('tab-num').onclick=()=>tab('num');$('tab-wheel').onclick=()=>tab('wheel');$('t
 
 // reels
 function setReels(v,pop){const s=String(v).padStart(2,'0');[['r0',s[0]],['r1',s[1]]].forEach(([id,d])=>{const el=$(id);el.textContent=d;if(pop){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}});}
-$('guess').addEventListener('input',()=>{const v=$('guess').value.replace(/\D/g,'');if(v.length)setReels(v.padStart(2,'0').slice(-2),true);else{$('r0').textContent='?';$('r1').textContent='?';}});
-$('roll').onclick=()=>{$('r0').classList.add('roll');$('r1').classList.add('roll');let t=0;const iv=setInterval(()=>{$('r0').textContent=Math.floor(Math.random()*10);$('r1').textContent=Math.floor(Math.random()*10);t+=80;if(t>=700){clearInterval(iv);$('r0').classList.remove('roll');$('r1').classList.remove('roll');const n=String(Math.floor(Math.random()*100)).padStart(2,'0');$('guess').value=n;setReels(n,true);}},80);};
+async function showGuessStat(n){const el=$('guess-stat');if(!/^\d{2}$/.test(n)){el.innerHTML='';return;}el.innerHTML='กำลังดูสถิติ…';try{const d=await(await fetch('/api/number/'+n)).json();el.innerHTML=d.total?`📊 เลข ${n} เคยออกมาแล้ว <b>${d.total} ครั้ง</b>${d.lastThai?` · ล่าสุด ${d.lastThai}`:''} · <a href="/huay/${n}">ดูสถิติเต็ม →</a>`:`เลข ${n} ยังไม่เคยออกในสถิติย้อนหลัง · <a href="/huay/${n}">ดูเต็ม →</a>`;}catch{el.innerHTML='';}}
+$('guess').addEventListener('input',()=>{const v=$('guess').value.replace(/\D/g,'');if(v.length){setReels(v.padStart(2,'0').slice(-2),true);if(v.length===2)showGuessStat(v);}else{$('r0').textContent='?';$('r1').textContent='?';$('guess-stat').innerHTML='';}});
+$('roll').onclick=()=>{$('r0').classList.add('roll');$('r1').classList.add('roll');let t=0;const iv=setInterval(()=>{$('r0').textContent=Math.floor(Math.random()*10);$('r1').textContent=Math.floor(Math.random()*10);t+=80;if(t>=700){clearInterval(iv);$('r0').classList.remove('roll');$('r1').classList.remove('roll');const n=String(Math.floor(Math.random()*100)).padStart(2,'0');$('guess').value=n;setReels(n,true);showGuessStat(n);}},80);};
 
 // confetti
 const cv=$('fx'),cx=cv.getContext('2d');function fit(){cv.width=innerWidth;cv.height=innerHeight;}fit();addEventListener('resize',fit);
@@ -145,7 +148,7 @@ function confetti(){const cols=['#14b884','#c8951a','#0c8a63','#f0c44a','#ff6b6b
 
 // wheel
 let wheelAngle=0;
-$('spin').onclick=()=>{$('spin').disabled=true;$('wheel-actions').innerHTML='';const n=Math.floor(Math.random()*100);wheelAngle+=360*5+Math.floor(Math.random()*360);$('wheel').style.transform=`rotate(${wheelAngle}deg)`;$('wheel-num').textContent='…';setTimeout(()=>{const s=String(n).padStart(2,'0');$('wheel-num').textContent=s;confetti();$('wheel-actions').innerHTML=`<p style="font-family:var(--display);font-weight:600;margin:0 0 10px">🍀 เลขนำโชคของคุณคือ ${s}</p><button class="dice-btn" id="use-num">ใช้เลขนี้ไปทาย</button>`;$('use-num').onclick=()=>{$('guess').value=s;setReels(s,true);tab('num');$('submit').scrollIntoView({behavior:'smooth',block:'center'});};$('spin').disabled=false;},3700);};
+$('spin').onclick=()=>{$('spin').disabled=true;$('wheel-actions').innerHTML='';const n=Math.floor(Math.random()*100);wheelAngle+=360*5+Math.floor(Math.random()*360);$('wheel').style.transform=`rotate(${wheelAngle}deg)`;$('wheel-num').textContent='…';setTimeout(()=>{const s=String(n).padStart(2,'0');$('wheel-num').textContent=s;confetti();$('wheel-actions').innerHTML=`<p style="font-family:var(--display);font-weight:600;margin:0 0 10px">🍀 เลขนำโชคของคุณคือ ${s}</p><button class="dice-btn" id="use-num">ใช้เลขนี้ไปทาย</button>`;$('use-num').onclick=()=>{$('guess').value=s;setReels(s,true);showGuessStat(s);tab('num');$('submit').scrollIntoView({behavior:'smooth',block:'center'});};$('spin').disabled=false;},3700);};
 
 // hi-lo selection
 let pick={hilo:null,oddeven:null};

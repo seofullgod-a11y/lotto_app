@@ -27,11 +27,16 @@
 .magic-btn:hover{transform:translateY(-2px)}.magic-btn:active{transform:scale(.97)}.magic-btn:disabled{opacity:.6}
 
 .num-out{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;justify-content:center}
-.num-out a{display:flex;flex-direction:column;align-items:center;min-width:84px;padding:14px 18px;background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;text-decoration:none;color:#8a6608;opacity:0;transform:scale(.5);animation:reveal-num .5s cubic-bezier(.2,1.6,.4,1) forwards;position:relative}
-.num-out a:nth-child(2){animation-delay:.12s}.num-out a:nth-child(3){animation-delay:.24s}.num-out a:nth-child(4){animation-delay:.36s}
-@keyframes reveal-num{to{opacity:1;transform:scale(1)}}
-.num-out a b{font-family:var(--tnum);font-size:1.9rem}.num-out a small{font-size:.66rem;color:var(--muted);margin-top:2px}
-.num-out a::after{content:'✨';position:absolute;top:-8px;right:-6px;font-size:.9rem;animation:tw 1.6s ease-in-out infinite}
+.num-grid{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.num-card{display:block;padding:14px 16px;background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;text-decoration:none;color:var(--ink);opacity:0;transform:translateY(10px);animation:reveal-num .5s ease forwards;transition:transform .15s,box-shadow .15s}
+.num-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+.num-card:nth-child(2){animation-delay:.1s}.num-card:nth-child(3){animation-delay:.2s}.num-card:nth-child(4){animation-delay:.3s}
+@keyframes reveal-num{to{opacity:1;transform:none}}
+.nc-head{display:flex;align-items:center;justify-content:space-between}
+.nc-n{font-family:var(--tnum);font-size:2rem;font-weight:700;color:#8a6608;letter-spacing:.08em}
+.nc-arrow{font-family:var(--display);font-weight:600;font-size:.82rem;color:var(--jade-deep)}
+.nc-stat{font-size:.86rem;color:var(--muted);margin-top:6px}.nc-stat b{color:var(--ink)}
+.ref-note{font-size:.78rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5}
 .interp{background:var(--surface-2);border-radius:14px;padding:16px;margin-top:16px;font-size:.98rem;line-height:1.6;border-left:3px solid var(--jade)}
 .loading{text-align:center;padding:20px;color:var(--muted)}
 .loading .dots span{display:inline-block;animation:bounce 1.2s infinite}.loading .dots span:nth-child(2){animation-delay:.15s}.loading .dots span:nth-child(3){animation-delay:.3s}
@@ -74,7 +79,10 @@
 <footer class="site-foot"><div class="wrap"><span class="note">เพื่อความบันเทิงเท่านั้น</span></div></footer>
 <script>
 const $=id=>document.getElementById(id);
-function chips(nums){return `<div class="num-out">${nums.map(n=>`<a href="/huay/${n}"><b>${n}</b><small>ดูสถิติ</small></a>`).join('')}</div>`;}
+async function renderNumbers(host,nums){
+  host.innerHTML='<div class="num-grid">'+nums.map(n=>`<a class="num-card" href="/huay/${n}"><div class="nc-head"><b class="nc-n">${n}</b><span class="nc-arrow">ดูสถิติเต็ม →</span></div><div class="nc-stat" data-n="${n}">กำลังโหลดสถิติ…</div></a>`).join('')+'</div><p class="ref-note">📊 อ้างอิงจากสถิติผลสลากกินแบ่งรัฐบาลย้อนหลังในระบบ · กดที่เลขเพื่อดูประวัติการออกเต็ม ๆ</p>';
+  for(const n of nums){try{const d=await(await fetch('/api/number/'+n)).json();const el=host.querySelector(`.nc-stat[data-n="${n}"]`);if(el)el.innerHTML=d.total?`📊 เลขนี้เคยออกในผลรางวัลมาแล้ว <b>${d.total} ครั้ง</b>${d.lastThai?` · ออกล่าสุดงวด <b>${d.lastThai}</b>`:''} (จาก ${d.totalDraws} งวด)`:'ยังไม่เคยออกในสถิติย้อนหลังที่มี';}catch{}}
+}
 function setTab(d){const dr=d==='dream';$('t-dream').classList.toggle('on',dr);$('t-lucky').classList.toggle('on',!dr);$('panel-dream').style.display=dr?'':'none';$('panel-lucky').style.display=dr?'none':'';$('hero-title').textContent=dr?'ทำนายฝันเป็นเลข':'เลขมงคลส่วนตัว';$('hero-sub').textContent=dr?'เล่าความฝัน แล้วให้เลขนำโชคปรากฏ':'เลขนำโชคจากวันเกิดของคุณ';}
 $('t-dream').onclick=()=>setTab('dream');$('t-lucky').onclick=()=>setTab('lucky');
 $('dream-go').onclick=async()=>{
@@ -83,7 +91,7 @@ $('dream-go').onclick=async()=>{
   $('dream-go').disabled=true;
   try{const r=await fetch('/api/dream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});const d=await r.json();
     if(!r.ok){$('dream-out').innerHTML=`<p class="note">${d.error||'ทำนายไม่สำเร็จ'}</p>`;}
-    else $('dream-out').innerHTML=`<div class="interp">${d.interpretation||''}</div>${chips(d.numbers||[])}<p class="note" style="margin-top:10px;text-align:center">${d.note||''}</p>`;
+    else{$('dream-out').innerHTML=`<div class="interp">${d.interpretation||''}</div><div id="dream-nums"></div><p class="note" style="margin-top:10px;text-align:center">${d.note||''}</p>`;renderNumbers($('dream-nums'),d.numbers||[]);}
   }catch{$('dream-out').innerHTML='<p class="note">เกิดข้อผิดพลาด</p>';}
   $('dream-go').disabled=false;
 };
@@ -94,6 +102,7 @@ $('lucky-go').onclick=()=>{
   const dd=+m[3],mm=+m[2],yy=+m[1];
   const core=reduce2(dd+mm+dsum(yy)),a=String(dd).padStart(2,'0'),bb=reduce2(dd*mm),three=String((dd*100+mm*7+dsum(yy))%1000).padStart(3,'0');
   const nums=[...new Set([core,a,bb,three])];
-  $('lucky-out').innerHTML=`<div class="interp">เลขมงคลของคุณจากวันเกิด — กดที่เลขเพื่อดูว่าออกบ่อยแค่ไหน ✨</div>${chips(nums)}`;
+  $('lucky-out').innerHTML=`<div class="interp">เลขมงคลของคุณจากวันเกิด — แต่ละเลขมีสถิติการออกจริงให้ดูด้วย ✨</div><div id="lucky-nums"></div>`;
+  renderNumbers($('lucky-nums'),nums);
 };
 </script></body></html>
