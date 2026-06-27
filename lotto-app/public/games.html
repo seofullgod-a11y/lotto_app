@@ -2,65 +2,105 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เกมลุ้นหวย — ทายเลข วงล้อเสี่ยงโชค สูง-ต่ำ | ตรวจหวย</title>
-<meta name="description" content="เกมลุ้นหวยฟรีหลายแบบ ทายเลขท้าย 2 ตัว วงล้อเสี่ยงโชค ทายสูง-ต่ำ คู่-คี่ สะสมแต้ม ขึ้นลีดเดอร์บอร์ด เพื่อความบันเทิง">
-<meta name="theme-color" content="#0c8a63"><link rel="stylesheet" href="/styles.css">
+<title>เกมลุ้นหวย — สล็อตทายเลข วงล้อเสี่ยงโชค สูง-ต่ำ | ตรวจหวย</title>
+<meta name="description" content="เกมลุ้นหวยฟรีสไตล์คาสิโน สล็อตทายเลขท้าย 2 ตัว วงล้อเสี่ยงโชค ทายสูง-ต่ำ คู่-คี่ สะสมแต้ม ขึ้นลีดเดอร์บอร์ด เพื่อความบันเทิง">
+<meta name="theme-color" content="#0a1822"><link rel="stylesheet" href="/styles.css">
 <style>
+:root{--neon-gold:#ffcf4a;--neon-gold-glow:#ffb01f;--neon-green:#34f0ad;--cas-bg:#0b1a25;--cas-bg2:#0e2620;--cas-line:rgba(255,255,255,.12);--cas-ink:#eaf3ef;--cas-muted:#9fb4ad}
 .ic{width:1.15em;height:1.15em;vertical-align:-.2em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.reveal{opacity:0;transform:translateY(14px);animation:rise .55s ease forwards}@keyframes rise{to{opacity:1;transform:none}}
+.reveal{opacity:0;transform:translateY(16px);animation:rise .55s ease forwards}@keyframes rise{to{opacity:1;transform:none}}
 
-.game-hero{position:relative;overflow:hidden;border-radius:22px;padding:30px 22px;text-align:center;color:#fff;background:linear-gradient(120deg,#14b884,#0c8a63 45%,#075c45);background-size:200% 200%;animation:flow 9s ease infinite;margin-bottom:18px}
-@keyframes flow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-.game-hero h1{font-family:var(--display);font-size:1.7rem;font-weight:700;margin:0 0 4px;position:relative}
-.game-hero p{opacity:.9;margin:0;font-size:.92rem;position:relative}
-.hero-deco{position:absolute;right:-30px;top:-30px;width:160px;height:160px;opacity:.13;stroke:#fff;fill:none;stroke-width:1.2}
+/* ===== CASINO HERO ===== */
+.casino{position:relative;border-radius:24px;padding:30px 20px;text-align:center;overflow:hidden;
+  background:radial-gradient(120% 100% at 50% -10%,#16384a,#0b1a25 60%),linear-gradient(160deg,#0e2620,#0b1a25);
+  border:2px solid transparent;margin-bottom:20px;
+  box-shadow:0 0 0 2px rgba(255,207,74,.25),0 14px 40px rgba(0,0,0,.4),inset 0 0 60px rgba(20,184,132,.12)}
+.casino h1{font-family:var(--display);font-size:2rem;font-weight:700;margin:0 0 4px;color:#fff;letter-spacing:.5px;
+  text-shadow:0 0 8px rgba(255,207,74,.9),0 0 22px rgba(255,176,31,.6);animation:flick 4s infinite}
+@keyframes flick{0%,97%,100%{opacity:1}98%{opacity:.72}99%{opacity:.92}}
+.casino .sub{color:#cfe6dd;opacity:.92;margin:0;font-size:.92rem;position:relative}
+.bulbs{position:absolute;left:14px;right:14px;display:flex;justify-content:space-between;pointer-events:none}
+.bulbs.top{top:10px}.bulbs.bot{bottom:10px}
+.bulbs i{width:8px;height:8px;border-radius:50%;background:var(--neon-gold);box-shadow:0 0 8px 2px var(--neon-gold-glow);animation:bulb 1s infinite}
+.bulbs i:nth-child(even){animation-delay:.5s}
+@keyframes bulb{0%,49%{opacity:1}50%,100%{opacity:.25}}
 
+/* ===== STAT CHIPS ===== */
 .stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
-.stat-box{flex:1 1 80px;background:var(--surface-2);border-radius:14px;padding:15px 10px;text-align:center;transition:.2s}
-.stat-box:hover{transform:translateY(-3px);background:#eaf3ef}
-.stat-box b{font-family:var(--tnum);font-size:1.8rem;color:var(--jade-deep);display:flex;align-items:center;justify-content:center;gap:3px;line-height:1}
-.stat-box small{color:var(--muted);font-size:.74rem}
-.fire{color:#e0772a;width:.9em;height:.9em}
+.stat-box{flex:1 1 80px;background:linear-gradient(160deg,#0e2620,#0b1a25);border:1px solid var(--cas-line);border-radius:16px;padding:15px 10px;text-align:center;box-shadow:inset 0 0 18px rgba(52,240,173,.08)}
+.stat-box b{font-family:var(--tnum);font-size:1.9rem;color:var(--neon-green);display:flex;align-items:center;justify-content:center;gap:3px;line-height:1;text-shadow:0 0 10px rgba(52,240,173,.5)}
+.stat-box small{color:var(--cas-muted);font-size:.74rem}
+.fire{color:#ff8a3c;width:.95em;height:.95em;filter:drop-shadow(0 0 4px rgba(255,138,60,.8))}
 
+/* ===== TABS ===== */
 .gtabs{display:flex;gap:8px;margin-bottom:16px}
-.gtabs button{flex:1;padding:13px 6px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;font-family:var(--display);font-weight:600;cursor:pointer;color:var(--muted);transition:.18s;font-size:.92rem;display:flex;flex-direction:column;align-items:center;gap:5px}
-.gtabs button .ic{width:1.4em;height:1.4em}
-.gtabs button.on{background:linear-gradient(135deg,var(--jade),var(--jade-deep));color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(12,138,99,.3)}
+.gtabs button{flex:1;padding:13px 6px;border:1.5px solid var(--cas-line);background:linear-gradient(160deg,#0e2620,#0b1a25);border-radius:14px;font-family:var(--display);font-weight:600;cursor:pointer;color:var(--cas-muted);transition:.18s;font-size:.92rem;display:flex;flex-direction:column;align-items:center;gap:5px}
+.gtabs button .ic{width:1.45em;height:1.45em}
+.gtabs button.on{color:#0a1822;background:linear-gradient(135deg,var(--neon-gold),#e0a92a);border-color:transparent;box-shadow:0 0 16px rgba(255,176,31,.6);transform:translateY(-2px)}
 
-.reels{display:flex;justify-content:center;gap:14px;margin:6px 0 16px}
-.reel{width:84px;height:112px;border-radius:18px;background:linear-gradient(160deg,var(--jade),var(--jade-deep));border:2px solid var(--gold-line);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:4rem;color:#fff;box-shadow:inset 0 -8px 22px rgba(0,0,0,.18)}
-.reel.roll{animation:shake .12s linear infinite}@keyframes shake{0%,100%{transform:translateY(-3px)}50%{transform:translateY(3px)}}
-.reel.pop{animation:pop .42s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
-.dice-btn{background:var(--surface-2);color:var(--jade-deep);border:1.5px solid var(--line);border-radius:999px;padding:11px 22px;font-family:var(--display);font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px}
-.dice-btn:hover{transform:translateY(-2px);border-color:var(--jade)}.dice-btn:active{transform:scale(.96)}
+/* ===== PANELS ===== */
+.cas-card{background:linear-gradient(160deg,#0e2620,#0b1a25);border:1px solid var(--cas-line);border-radius:20px;padding:20px;color:var(--cas-ink);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.cas-card label{color:var(--cas-muted)}
+.cas-card .note{color:var(--cas-muted)}
+.cas-card input,.lottery-pick.cas select{background:#0a1822;color:#fff;border-color:var(--cas-line)}
 
-.play-btn{width:100%;background:linear-gradient(120deg,var(--gold),#e0a92a);color:#3a2c00;border:none;border-radius:15px;padding:16px;font-family:var(--display);font-weight:700;font-size:1.12rem;cursor:pointer;box-shadow:0 8px 22px rgba(200,149,26,.4);transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.play-btn:hover{transform:translateY(-2px)}.play-btn:active{transform:scale(.97)}.play-btn:disabled{opacity:.6}
+/* ===== SLOT MACHINE ===== */
+.slot{position:relative;margin:4px auto 16px;width:max-content;padding:16px 18px 14px;border-radius:18px;
+  background:linear-gradient(160deg,#1a1208,#0a0a0a);border:3px solid transparent;
+  box-shadow:0 0 0 3px #e0a92a,0 0 22px rgba(255,176,31,.5),inset 0 0 24px rgba(0,0,0,.6)}
+.slot .corner{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--neon-gold);box-shadow:0 0 9px 2px var(--neon-gold-glow);animation:bulb .8s infinite}
+.slot .c1{top:6px;left:6px}.slot .c2{top:6px;right:6px;animation-delay:.4s}.slot .c3{bottom:6px;left:6px;animation-delay:.4s}.slot .c4{bottom:6px;right:6px}
+.reels{display:flex;gap:12px}
+.reel{width:78px;height:96px;overflow:hidden;border-radius:12px;background:linear-gradient(#fffdf6,#e9eef0);box-shadow:inset 0 6px 12px rgba(0,0,0,.25),inset 0 -6px 12px rgba(0,0,0,.25);position:relative}
+.reel::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.28),transparent 26%,transparent 74%,rgba(0,0,0,.28))}
+.strip{display:flex;flex-direction:column;will-change:transform}
+.cell{height:96px;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:4rem;color:#0c2a22}
+.slot-glass{position:absolute;left:10px;right:10px;top:50%;height:2px;transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(255,176,31,.7),transparent);pointer-events:none}
 
-.confirm{background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;padding:18px;text-align:center;margin-top:16px;animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
-.confirm .big{font-family:var(--tnum);font-size:2.6rem;font-weight:700;color:#8a6608;letter-spacing:.2em;margin:4px 0}
-.guess-stat{font-size:.84rem;color:var(--muted);text-align:center;margin:0 0 14px;min-height:18px}.guess-stat b{color:var(--ink)}.guess-stat a{color:var(--jade-deep);font-weight:600;text-decoration:none}
+.dice-btn{background:#0a1822;color:var(--neon-gold);border:1.5px solid var(--neon-gold-glow);border-radius:999px;padding:11px 24px;font-family:var(--display);font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:8px;box-shadow:0 0 12px rgba(255,176,31,.3)}
+.dice-btn:hover{transform:translateY(-2px);box-shadow:0 0 18px rgba(255,176,31,.6)}.dice-btn:active{transform:scale(.96)}.dice-btn:disabled{opacity:.5}
 
-.wheel-wrap{position:relative;width:240px;height:240px;margin:6px auto 0}
-.wheel{width:240px;height:240px;border-radius:50%;border:8px solid var(--gold);transition:transform 3.6s cubic-bezier(.17,.67,.2,1);background:conic-gradient(#14b884 0 36deg,#c8951a 0 72deg,#0c8a63 0 108deg,#e0a92a 0 144deg,#075c45 0 180deg,#14b884 0 216deg,#c8951a 0 252deg,#0c8a63 0 288deg,#e0a92a 0 324deg,#075c45 0 360deg);box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.wheel-center{position:absolute;inset:0;margin:auto;width:90px;height:90px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:var(--tnum);font-weight:700;font-size:2.2rem;color:var(--jade-deep);box-shadow:0 2px 10px rgba(0,0,0,.2)}
-.wheel-ptr{position:absolute;top:-14px;left:50%;transform:translateX(-50%);z-index:2;color:var(--gold);width:26px;height:26px}
+/* shiny gold button */
+.play-btn{position:relative;overflow:hidden;width:100%;background:linear-gradient(120deg,#ffd86b,#e0a92a);color:#3a2400;border:none;border-radius:15px;padding:17px;font-family:var(--display);font-weight:700;font-size:1.15rem;cursor:pointer;box-shadow:0 8px 24px rgba(224,169,42,.5),0 0 0 1px rgba(255,255,255,.2) inset;transition:.15s}
+.play-btn::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-18deg);animation:sheen 3s infinite}
+@keyframes sheen{0%{left:-60%}55%,100%{left:130%}}
+.play-btn:hover{transform:translateY(-2px)}.play-btn:active{transform:scale(.97)}.play-btn:disabled{opacity:.6}.play-btn:disabled::after{display:none}
 
+.confirm{background:linear-gradient(135deg,#1a1208,#0e2620);border:1.5px solid var(--neon-gold-glow);border-radius:16px;padding:18px;text-align:center;margin-top:16px;animation:popz .5s cubic-bezier(.2,1.5,.4,1);box-shadow:0 0 20px rgba(255,176,31,.25)}
+@keyframes popz{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.confirm .lbl{color:var(--cas-muted);font-size:.9rem}
+.confirm .big{font-family:var(--tnum);font-size:2.8rem;font-weight:700;color:var(--neon-gold);letter-spacing:.2em;margin:4px 0;text-shadow:0 0 14px rgba(255,176,31,.6)}
+.guess-stat{font-size:.84rem;color:var(--cas-muted);text-align:center;margin:0 0 14px;min-height:18px}.guess-stat b{color:#fff}.guess-stat a{color:var(--neon-green);font-weight:600;text-decoration:none}
+
+/* WHEEL */
+.wheel-wrap{position:relative;width:248px;height:248px;margin:8px auto 0}
+.wheel-ring{position:absolute;inset:-8px;border-radius:50%;border:3px solid #e0a92a;box-shadow:0 0 22px rgba(255,176,31,.5)}
+.wheel-ring i{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--neon-gold);box-shadow:0 0 8px 2px var(--neon-gold-glow);animation:bulb .9s infinite}
+.wheel{width:248px;height:248px;border-radius:50%;transition:transform 4s cubic-bezier(.12,.7,.18,1);background:conic-gradient(#14b884 0 36deg,#c8951a 0 72deg,#0c8a63 0 108deg,#ffd86b 0 144deg,#075c45 0 180deg,#14b884 0 216deg,#c8951a 0 252deg,#0c8a63 0 288deg,#ffd86b 0 324deg,#075c45 0 360deg);box-shadow:inset 0 0 30px rgba(0,0,0,.4)}
+.wheel-center{position:absolute;inset:0;margin:auto;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#f3f6f4);display:grid;place-items:center;font-family:var(--tnum);font-weight:700;font-size:2.1rem;color:var(--jade-deep);box-shadow:0 2px 12px rgba(0,0,0,.4),0 0 0 4px #e0a92a}
+.wheel-ptr{position:absolute;top:-20px;left:50%;transform:translateX(-50%);z-index:3;color:var(--neon-gold);width:30px;height:30px;filter:drop-shadow(0 0 6px rgba(255,176,31,.8))}
+
+/* HI-LO */
 .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 18px}
-.choice{padding:16px;border:2px solid var(--line);border-radius:15px;background:var(--surface);cursor:pointer;text-align:center;font-family:var(--display);font-weight:600;font-size:1.02rem;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:6px}
-.choice .ic{width:1.7em;height:1.7em;color:var(--jade)}
-.choice.sel{border-color:var(--jade);background:var(--surface-2);color:var(--jade-deep);transform:translateY(-2px)}
-.choice-label{font-family:var(--display);font-weight:600;font-size:.9rem;margin:6px 0;text-align:center}
+.choice{padding:16px;border:2px solid var(--cas-line);border-radius:15px;background:#0a1822;color:var(--cas-ink);cursor:pointer;text-align:center;font-family:var(--display);font-weight:600;font-size:1.02rem;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.choice .ic{width:1.7em;height:1.7em;color:var(--neon-green)}
+.choice.sel{border-color:var(--neon-gold);background:linear-gradient(160deg,#1a1208,#0e2620);color:#fff;box-shadow:0 0 14px rgba(255,176,31,.4)}
+.choice-label{font-family:var(--display);font-weight:600;font-size:.9rem;margin:6px 0;text-align:center;color:var(--cas-muted)}
 
-.lb{width:100%;border-collapse:collapse}.lb td,.lb th{padding:12px;border-bottom:1px solid var(--line);text-align:left}
-.lb th{font-family:var(--display);font-size:.8rem;color:var(--muted);font-weight:600}
+/* LEADERBOARD */
+.lb-wrap{background:linear-gradient(160deg,#0e2620,#0b1a25);border:1px solid var(--cas-line);border-radius:20px;padding:6px 16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.lb{width:100%;border-collapse:collapse}.lb td,.lb th{padding:12px 8px;border-bottom:1px solid var(--cas-line);text-align:left;color:var(--cas-ink)}
+.lb th{font-family:var(--display);font-size:.8rem;color:var(--cas-muted);font-weight:600}
 .lb td.r{text-align:right;font-family:var(--tnum);font-weight:600}
-.lb tr.me{background:var(--gold-soft);font-weight:600}.lb tbody tr:hover{background:var(--surface-2)}
-.rk{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;font-family:var(--tnum);font-weight:700;font-size:.85rem;background:var(--surface-2);color:var(--muted)}
-.rk.rk1{background:linear-gradient(135deg,#ffd86b,#e0a92a);color:#5a3d00}.rk.rk2{background:linear-gradient(135deg,#e2e8ec,#b6c2cb);color:#3a4750}.rk.rk3{background:linear-gradient(135deg,#f0b486,#cd7f4e);color:#532d11}
+.lb tr.me{background:rgba(255,207,74,.12)}
+.rk{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;font-family:var(--tnum);font-weight:700;font-size:.85rem;background:#0a1822;color:var(--cas-muted)}
+.rk.rk1{background:linear-gradient(135deg,#ffe07a,#e0a92a);color:#5a3d00;box-shadow:0 0 12px rgba(255,176,31,.7)}
+.rk.rk2{background:linear-gradient(135deg,#e2e8ec,#aab6bf);color:#2a343c}.rk.rk3{background:linear-gradient(135deg,#f0b486,#c87a45);color:#3a1d09}
+.crown{width:14px;height:14px;color:var(--neon-gold);margin-left:3px;vertical-align:-.1em;filter:drop-shadow(0 0 3px rgba(255,176,31,.8))}
 .streak-cell{display:inline-flex;align-items:center;gap:2px;justify-content:flex-end}
-#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important}.reveal{opacity:1;transform:none}}
+.eyebrow.cas{color:var(--jade-deep)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:60}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important}.reveal{opacity:1;transform:none}.play-btn::after{display:none}}
 </style></head><body>
 <canvas id="fx"></canvas>
 <header class="site-head"><div class="wrap">
@@ -68,40 +108,46 @@
 <nav class="nav"><a href="/">ตรวจหวย</a><a href="/games" aria-current="page">เกม</a><a href="/dream">ทำนายฝัน</a></nav>
 </div></header>
 <main class="wrap">
-<section class="game-hero">
-<svg class="hero-deco" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-<h1>เกมลุ้นหวย</h1><p>เล่นฟรี สะสมแต้ม ขึ้นลีดเดอร์บอร์ด · เพื่อความบันเทิง</p>
+<section class="casino">
+<div class="bulbs top" id="bt"></div>
+<h1>เกมลุ้นหวย</h1>
+<p class="sub">เล่นฟรี · ลุ้นสล็อต · สะสมแต้มขึ้นลีดเดอร์บอร์ด</p>
+<div class="bulbs bot" id="bb"></div>
 </section>
 
 <div id="my-stats" class="stat-row reveal"></div>
-<div class="lottery-pick reveal"><label for="lottery-select">เลือกหวย</label><select id="lottery-select"></select></div>
-<input id="nick" maxlength="24" placeholder="ชื่อเล่นของคุณ" style="text-align:center;max-width:240px;margin:0 auto 16px;font-family:var(--display)">
+<div class="lottery-pick cas reveal"><label for="lottery-select">เลือกหวย</label><select id="lottery-select"></select></div>
+<input id="nick" maxlength="24" placeholder="ชื่อเล่นของคุณ" style="text-align:center;max-width:240px;margin:0 auto 16px;font-family:var(--display);background:#0a1822;color:#fff;border:1px solid var(--cas-line)">
 
 <div class="gtabs reveal">
-<button id="tab-num" class="on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>ทายเลข</button>
+<button id="tab-num" class="on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>สล็อตทายเลข</button>
 <button id="tab-wheel"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/><line x1="18.4" y1="5.6" x2="5.6" y2="18.4"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>วงล้อ</button>
 <button id="tab-hilo"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7 2.5 12.5a3 3 0 0 0 5 0z"/><path d="M19 7l-2.5 5.5a3 3 0 0 0 5 0z"/></svg>สูง-ต่ำ</button>
 </div>
 
-<section id="p-num" class="card reveal">
-<div class="reels"><div class="reel" id="r0">?</div><div class="reel" id="r1">?</div></div>
-<div style="text-align:center;margin-bottom:14px"><button class="dice-btn" id="roll"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.1" fill="currentColor" stroke="none"/></svg> สุ่มเลขนำโชค</button></div>
+<section id="p-num" class="cas-card reveal">
+<div class="slot">
+  <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+  <div class="reels"><div class="reel"><div class="strip" id="s0"></div></div><div class="reel"><div class="strip" id="s1"></div></div></div>
+  <div class="slot-glass"></div>
+</div>
+<div style="text-align:center;margin-bottom:14px"><button class="dice-btn" id="roll"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.1" fill="currentColor" stroke="none"/></svg> ดึงคันโยก สุ่มเลข</button></div>
 <label style="text-align:center">หรือพิมพ์เลขเอง</label>
 <input id="guess" inputmode="numeric" maxlength="2" placeholder="00" style="text-align:center;font-family:var(--tnum);font-size:1.8rem;letter-spacing:.2em;max-width:140px;margin:0 auto 8px">
 <div id="guess-stat" class="guess-stat"></div>
-<button class="play-btn" id="submit">ส่งคำทาย · ถูกเป๊ะ +10</button>
+<button class="play-btn" id="submit">ส่งคำทาย · ถูกเป๊ะรับ 10 แต้ม</button>
 <div id="confirm-num"></div>
 </section>
 
-<section id="p-wheel" class="card reveal" style="display:none">
-<p class="note" style="text-align:center;margin-top:0">หมุนวงล้อรับเลขนำโชค แล้วเอาไปทายต่อได้</p>
-<div class="wheel-wrap"><svg class="wheel-ptr" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22 3 6h18z"/></svg><div class="wheel" id="wheel"></div><div class="wheel-center" id="wheel-num">??</div></div>
-<div style="text-align:center;margin:18px 0 0"><button class="play-btn" id="spin" style="max-width:220px">หมุนวงล้อ</button></div>
+<section id="p-wheel" class="cas-card reveal" style="display:none">
+<p class="note" style="text-align:center;margin-top:0">หมุนวงล้อทองรับเลขนำโชค แล้วเอาไปทายต่อ</p>
+<div class="wheel-wrap"><div class="wheel-ring" id="ring"></div><svg class="wheel-ptr" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22 4 7h16z"/></svg><div class="wheel" id="wheel"></div><div class="wheel-center" id="wheel-num">??</div></div>
+<div style="text-align:center;margin:20px 0 0"><button class="play-btn" id="spin" style="max-width:230px">หมุนวงล้อทอง</button></div>
 <div id="wheel-actions" style="text-align:center;margin-top:14px"></div>
 </section>
 
-<section id="p-hilo" class="card reveal" style="display:none">
-<p class="note" style="text-align:center;margin-top:0">ทายแนวโน้มเลขท้าย 2 ตัวของงวดหน้า · ถูกอันละ +5</p>
+<section id="p-hilo" class="cas-card reveal" style="display:none">
+<p class="note" style="text-align:center;margin-top:0">ทายแนวโน้มเลขท้าย 2 ตัวงวดหน้า · ถูกอันละ 5 แต้ม</p>
 <div class="choice-label">สูง / ต่ำ</div>
 <div class="choice-grid">
 <div class="choice" data-hilo="high"><svg class="ic" viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg>สูง (50-99)</div>
@@ -116,32 +162,55 @@
 <div id="confirm-hilo"></div>
 </section>
 
-<p class="eyebrow section-gap"><svg class="ic" style="width:1.1em;height:1.1em;vertical-align:-.18em;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v3a4 4 0 0 1-8 0z"/><path d="M8 5H5a2 2 0 0 0 0 4h1.2"/><path d="M16 5h3a2 2 0 0 1 0 4h-1.2"/><path d="M10 12.5h4M12 12v4M9 20h6M10 20v-2.5h4V20"/></svg> ลีดเดอร์บอร์ด</p>
-<section class="card reveal"><table class="lb"><thead><tr><th>อันดับ</th><th>ผู้เล่น</th><th class="r">ชนะ</th><th class="r">สตรีค</th><th class="r">แต้ม</th></tr></thead><tbody id="lb"></tbody></table></section>
+<p class="eyebrow cas section-gap"><svg class="ic" style="width:1.1em;height:1.1em;vertical-align:-.18em;color:var(--gold)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v3a4 4 0 0 1-8 0z"/><path d="M8 5H5a2 2 0 0 0 0 4h1.2"/><path d="M16 5h3a2 2 0 0 1 0 4h-1.2"/><path d="M10 12.5h4M12 12v4M9 20h6M10 20v-2.5h4V20"/></svg> ลีดเดอร์บอร์ด</p>
+<div class="lb-wrap reveal"><table class="lb"><thead><tr><th>อันดับ</th><th>ผู้เล่น</th><th class="r">ชนะ</th><th class="r">สตรีค</th><th class="r">แต้ม</th></tr></thead><tbody id="lb"></tbody></table></div>
 </main>
 <footer class="site-foot"><div class="wrap"><span class="note">เกมเพื่อความบันเทิง ไม่มีการเดิมพันด้วยเงิน</span></div></footer>
 <script>
 const $=id=>document.getElementById(id);
 const FIRE='<svg class="ic fire" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.6 2.6 3.5 4.3 3.5 7.8A3.5 3.5 0 0 1 12 14a3.5 3.5 0 0 1-3.5-3.2c0-1.3.6-2.1.6-2.1.4 1.2 1.2 1.6 1.2 1.6.1-1.7.7-3.7 1.7-5.3z"/></svg>';
+const CROWN='<svg class="crown" viewBox="0 0 24 24" fill="currentColor"><path d="M3 8l4 3 5-6 5 6 4-3-2 11H5z"/></svg>';
 let DEVICE=localStorage.getItem('huay_device');if(!DEVICE){DEVICE='d'+Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('huay_device',DEVICE);}
 if(localStorage.huay_nick)$('nick').value=localStorage.huay_nick;
 let LOTTERIES=[],current='government';
 const lotName=c=>(LOTTERIES.find(l=>l.code===c)||{}).short||c;
 const nick=()=>{const n=$('nick').value.trim()||'ผู้เล่น';localStorage.huay_nick=n;return n;};
+
+// marquee bulbs + wheel ring bulbs
+function fillBulbs(el,n){el.innerHTML=Array.from({length:n},()=>'<i></i>').join('');}
+fillBulbs($('bt'),14);fillBulbs($('bb'),14);
+(function ringBulbs(){const ring=$('ring');const N=16;for(let i=0;i<N;i++){const a=i/N*2*Math.PI;const x=50+48*Math.cos(a),y=50+48*Math.sin(a);const b=document.createElement('i');b.style.left=`calc(${x}% - 3.5px)`;b.style.top=`calc(${y}% - 3.5px)`;b.style.animationDelay=(i%2?.45:0)+'s';ring.appendChild(b);}})();
+
 function tab(t){for(const[k,p]of[['num','p-num'],['wheel','p-wheel'],['hilo','p-hilo']]){$('tab-'+k).classList.toggle('on',k===t);$(p).style.display=k===t?'':'none';}}
 $('tab-num').onclick=()=>tab('num');$('tab-wheel').onclick=()=>tab('wheel');$('tab-hilo').onclick=()=>tab('hilo');
 
-function setReels(v,pop){const s=String(v).padStart(2,'0');[['r0',s[0]],['r1',s[1]]].forEach(([id,d])=>{const el=$(id);el.textContent=d;if(pop){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}});}
+// ===== SLOT REELS =====
+const CELL=96,LOOPS=4;
+function buildStrip(el){let h='';for(let r=0;r<LOOPS+2;r++)for(let d=0;d<10;d++)h+=`<div class="cell">${d}</div>`;el.innerHTML=h;}
+buildStrip($('s0'));buildStrip($('s1'));
+function setDigit(el,d){el.style.transition='none';el.style.transform=`translateY(${-d*CELL}px)`;}
+setDigit($('s0'),0);setDigit($('s1'),0);
+function spinReel(el,d,dur){el.style.transition='none';el.style.transform='translateY(0)';void el.offsetWidth;el.style.transition=`transform ${dur}ms cubic-bezier(.13,.72,.18,1)`;el.style.transform=`translateY(${-((LOOPS*10+d)*CELL)}px)`;setTimeout(()=>setDigit(el,d),dur+30);}
+function showReels(v){const s=String(v).padStart(2,'0');setDigit($('s0'),+s[0]);setDigit($('s1'),+s[1]);}
+
 async function showGuessStat(n){const el=$('guess-stat');if(!/^\d{2}$/.test(n)){el.innerHTML='';return;}el.textContent='กำลังดูสถิติ…';try{const d=await(await fetch('/api/number/'+n)).json();el.innerHTML=d.total?`เลข ${n} เคยออกมาแล้ว <b>${d.total} ครั้ง</b>${d.lastThai?` · ล่าสุด ${d.lastThai}`:''} · <a href="/huay/${n}">ดูสถิติเต็ม</a>`:`เลข ${n} ยังไม่เคยออกในสถิติ · <a href="/huay/${n}">ดูเต็ม</a>`;}catch{el.innerHTML='';}}
-$('guess').addEventListener('input',()=>{const v=$('guess').value.replace(/\D/g,'');if(v.length){setReels(v.padStart(2,'0').slice(-2),true);if(v.length===2)showGuessStat(v);}else{$('r0').textContent='?';$('r1').textContent='?';$('guess-stat').innerHTML='';}});
-$('roll').onclick=()=>{$('r0').classList.add('roll');$('r1').classList.add('roll');let t=0;const iv=setInterval(()=>{$('r0').textContent=Math.floor(Math.random()*10);$('r1').textContent=Math.floor(Math.random()*10);t+=80;if(t>=700){clearInterval(iv);$('r0').classList.remove('roll');$('r1').classList.remove('roll');const n=String(Math.floor(Math.random()*100)).padStart(2,'0');$('guess').value=n;setReels(n,true);showGuessStat(n);}},80);};
+$('guess').addEventListener('input',()=>{const v=$('guess').value.replace(/\D/g,'');if(v.length){showReels(v.padStart(2,'0').slice(-2));if(v.length===2)showGuessStat(v);}else{setDigit($('s0'),0);setDigit($('s1'),0);$('guess-stat').innerHTML='';}});
+$('roll').onclick=()=>{$('roll').disabled=true;const n=Math.floor(Math.random()*100),s=String(n).padStart(2,'0');spinReel($('s0'),+s[0],2200);spinReel($('s1'),+s[1],2800);setTimeout(()=>{$('guess').value=s;showGuessStat(s);$('roll').disabled=false;coinBurst();},2850);};
 
+// ===== COIN SHOWER / CONFETTI =====
 const cv=$('fx'),cx=cv.getContext('2d');function fit(){cv.width=innerWidth;cv.height=innerHeight;}fit();addEventListener('resize',fit);
-function confetti(){const cols=['#14b884','#c8951a','#0c8a63','#f0c44a','#ff6b6b'];const P=[];for(let i=0;i<120;i++)P.push({x:innerWidth/2,y:innerHeight/3,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,g:.4,s:Math.random()*7+4,c:cols[i%cols.length],r:Math.random()*6,vr:(Math.random()-.5)*.4});let f=0;(function loop(){cx.clearRect(0,0,cv.width,cv.height);f++;P.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);cx.restore();});if(f<110)requestAnimationFrame(loop);else cx.clearRect(0,0,cv.width,cv.height);})();}
+function shower(coins){const P=[];const conf=['#14b884','#0c8a63','#ff6b6b','#34f0ad'];
+  for(let i=0;i<(coins?90:70);i++){const isCoin=coins&&i%2===0;P.push({x:Math.random()*innerWidth,y:-20-Math.random()*innerHeight*.3,vx:(Math.random()-.5)*4,vy:Math.random()*3+3,g:.18,s:isCoin?Math.random()*10+12:Math.random()*7+4,coin:isCoin,c:conf[i%conf.length],r:Math.random()*6,vr:(Math.random()-.5)*.3});}
+  let f=0;(function loop(){cx.clearRect(0,0,cv.width,cv.height);f++;P.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);
+    if(p.coin){const g=cx.createLinearGradient(-p.s,0,p.s,0);g.addColorStop(0,'#ffd86b');g.addColorStop(.5,'#ffb01f');g.addColorStop(1,'#e0a92a');cx.fillStyle=g;cx.beginPath();cx.ellipse(0,0,p.s,p.s*.78,0,0,7);cx.fill();cx.fillStyle='rgba(255,255,255,.5)';cx.font=`bold ${p.s}px Kanit`;cx.textAlign='center';cx.textBaseline='middle';cx.fillText('฿',0,1);}
+    else{cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);}cx.restore();});if(f<150)requestAnimationFrame(loop);else cx.clearRect(0,0,cv.width,cv.height);})();}
+function coinBurst(){shower(true);}
 
+// ===== WHEEL =====
 let wheelAngle=0;
-$('spin').onclick=()=>{$('spin').disabled=true;$('wheel-actions').innerHTML='';const n=Math.floor(Math.random()*100);wheelAngle+=360*5+Math.floor(Math.random()*360);$('wheel').style.transform=`rotate(${wheelAngle}deg)`;$('wheel-num').textContent='…';setTimeout(()=>{const s=String(n).padStart(2,'0');$('wheel-num').textContent=s;confetti();$('wheel-actions').innerHTML=`<p style="font-family:var(--display);font-weight:600;margin:0 0 10px">เลขนำโชคของคุณคือ ${s}</p><button class="dice-btn" id="use-num">ใช้เลขนี้ไปทาย</button>`;$('use-num').onclick=()=>{$('guess').value=s;setReels(s,true);showGuessStat(s);tab('num');$('submit').scrollIntoView({behavior:'smooth',block:'center'});};$('spin').disabled=false;},3700);};
+$('spin').onclick=()=>{$('spin').disabled=true;$('wheel-actions').innerHTML='';const n=Math.floor(Math.random()*100);wheelAngle+=360*6+Math.floor(Math.random()*360);$('wheel').style.transform=`rotate(${wheelAngle}deg)`;$('wheel-num').textContent='…';setTimeout(()=>{const s=String(n).padStart(2,'0');$('wheel-num').textContent=s;coinBurst();$('wheel-actions').innerHTML=`<p style="font-family:var(--display);font-weight:700;margin:0 0 10px;color:var(--neon-gold);font-size:1.1rem">เลขนำโชคของคุณคือ ${s}</p><button class="dice-btn" id="use-num">ใช้เลขนี้ไปทาย</button>`;$('use-num').onclick=()=>{$('guess').value=s;showReels(s);showGuessStat(s);tab('num');$('p-num').scrollIntoView({behavior:'smooth',block:'center'});};$('spin').disabled=false;},4050);};
 
+// ===== HI-LO =====
 let pick={hilo:null,oddeven:null};
 document.querySelectorAll('#p-hilo .choice').forEach(c=>c.onclick=()=>{const k=c.dataset.hilo?'hilo':'oddeven';const v=c.dataset.hilo||c.dataset.oddeven;pick[k]=pick[k]===v?null:v;document.querySelectorAll(`#p-hilo .choice[data-${k==='hilo'?'hilo':'oddeven'}]`).forEach(x=>x.classList.toggle('sel',(x.dataset.hilo||x.dataset.oddeven)===pick[k]));});
 
@@ -150,13 +219,13 @@ async function refresh(){
   const{top,me}=await(await fetch('/api/leaderboard?deviceId='+DEVICE)).json();
   $('my-stats').innerHTML=`<div class="stat-box"><b>${me&&me.points||0}</b><small>แต้ม</small></div><div class="stat-box"><b>${me&&me.wins||0}</b><small>ชนะ</small></div><div class="stat-box"><b>${me&&me.streak||0}${FIRE}</b><small>สตรีค</small></div><div class="stat-box"><b>${me&&me.best_streak||0}</b><small>สูงสุด</small></div>`;
   const pend=me&&me.pending&&me.pending.find(p=>p.lottery===current);
-  $('confirm-num').innerHTML=pend?`<div class="confirm">คุณทาย${lotName(current)}ไว้แล้ว<div class="big">${pend.guess}</div><small class="note">รอหวยออก แล้วมาเช็คแต้ม</small></div>`:'';
+  $('confirm-num').innerHTML=pend?`<div class="confirm"><div class="lbl">คุณทาย${lotName(current)}ไว้แล้ว</div><div class="big">${pend.guess}</div><small class="note">รอหวยออก แล้วมาเช็คแต้ม</small></div>`:'';
   const sb=me&&me.sidebets&&me.sidebets.find(x=>x.lottery===current);
-  $('confirm-hilo').innerHTML=sb?`<div class="confirm" style="padding:14px"><b>ทายไว้แล้ว:</b> ${sb.hilo?(sb.hilo==='high'?'สูง':'ต่ำ'):''} ${sb.oddeven?(sb.oddeven==='odd'?'คี่':'คู่'):''}<br><small class="note">รอหวยออก</small></div>`:'';
-  $('lb').innerHTML=top.length?top.map((p,i)=>`<tr${me&&p.nickname===me.nickname?' class="me"':''}><td><span class="rk rk${i+1}">${i+1}</span></td><td>${p.nickname}</td><td class="r">${p.wins}</td><td class="r"><span class="streak-cell">${p.streak}${p.streak>0?FIRE:''}</span></td><td class="r">${p.points}</td></tr>`).join(''):'<tr><td colspan="5" class="note">ยังไม่มีผู้เล่น มาเป็นคนแรก!</td></tr>';
+  $('confirm-hilo').innerHTML=sb?`<div class="confirm" style="padding:14px"><b style="color:#fff">ทายไว้แล้ว:</b> <span style="color:var(--neon-gold)">${sb.hilo?(sb.hilo==='high'?'สูง':'ต่ำ'):''} ${sb.oddeven?(sb.oddeven==='odd'?'คี่':'คู่'):''}</span><br><small class="note">รอหวยออก</small></div>`:'';
+  $('lb').innerHTML=top.length?top.map((p,i)=>`<tr${me&&p.nickname===me.nickname?' class="me"':''}><td><span class="rk rk${i+1}">${i+1}</span></td><td>${p.nickname}${i===0?CROWN:''}</td><td class="r">${p.wins}</td><td class="r"><span class="streak-cell">${p.streak}${p.streak>0?FIRE:''}</span></td><td class="r">${p.points}</td></tr>`).join(''):'<tr><td colspan="5" class="note">ยังไม่มีผู้เล่น มาเป็นคนแรก!</td></tr>';
 }
-$('submit').onclick=async()=>{const guess=$('guess').value.replace(/\D/g,'');if(guess.length!==2)return alert('ใส่เลข 2 หลัก หรือกดสุ่ม/หมุนวงล้อ');$('submit').disabled=true;try{const r=await fetch('/api/predict?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname:nick(),guess})});if(r.ok){confetti();$('guess').value='';$('guess-stat').innerHTML='';await refresh();$('confirm-num').scrollIntoView({behavior:'smooth',block:'center'});}else alert('ส่งไม่สำเร็จ');}catch{alert('เกิดข้อผิดพลาด');}$('submit').disabled=false;};
-$('submit-hilo').onclick=async()=>{if(!pick.hilo&&!pick.oddeven)return alert('เลือกอย่างน้อย 1 อย่าง');$('submit-hilo').disabled=true;try{const r=await fetch('/api/sidebet?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname:nick(),hilo:pick.hilo,oddeven:pick.oddeven})});if(r.ok){confetti();await refresh();$('confirm-hilo').scrollIntoView({behavior:'smooth',block:'center'});}else alert('ส่งไม่สำเร็จ');}catch{alert('เกิดข้อผิดพลาด');}$('submit-hilo').disabled=false;};
+$('submit').onclick=async()=>{const guess=$('guess').value.replace(/\D/g,'');if(guess.length!==2)return alert('ใส่เลข 2 หลัก หรือดึงคันโยก/หมุนวงล้อ');$('submit').disabled=true;try{const r=await fetch('/api/predict?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname:nick(),guess})});if(r.ok){shower(true);$('guess').value='';$('guess-stat').innerHTML='';await refresh();$('confirm-num').scrollIntoView({behavior:'smooth',block:'center'});}else alert('ส่งไม่สำเร็จ');}catch{alert('เกิดข้อผิดพลาด');}$('submit').disabled=false;};
+$('submit-hilo').onclick=async()=>{if(!pick.hilo&&!pick.oddeven)return alert('เลือกอย่างน้อย 1 อย่าง');$('submit-hilo').disabled=true;try{const r=await fetch('/api/sidebet?lottery='+current,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE,nickname:nick(),hilo:pick.hilo,oddeven:pick.oddeven})});if(r.ok){shower(true);await refresh();$('confirm-hilo').scrollIntoView({behavior:'smooth',block:'center'});}else alert('ส่งไม่สำเร็จ');}catch{alert('เกิดข้อผิดพลาด');}$('submit-hilo').disabled=false;};
 $('lottery-select').onchange=e=>{current=e.target.value;refresh();};
 (async()=>{await loadLotteries();refresh();})();
 </script></body></html>
