@@ -3,45 +3,46 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ทำนายฝันเป็นเลข + เลขมงคลส่วนตัว | ตรวจหวย</title>
-<meta name="description" content="เล่าความฝันแล้ว AI ตีความเป็นเลขตามตำราฝันไทย พร้อมเลขมงคลจากวันเกิด เพื่อความบันเทิง">
+<meta name="description" content="เล่าความฝันแล้วหมอดู AI ตีความเป็นเลขตามตำราฝันไทย พร้อมเลขมงคลจากวันเกิด เพื่อความบันเทิง">
 <meta name="theme-color" content="#0c8a63"><link rel="stylesheet" href="/styles.css">
 <style>
+.ic{width:1.15em;height:1.15em;vertical-align:-.2em;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .reveal{opacity:0;transform:translateY(14px);animation:rise .55s ease forwards}@keyframes rise{to{opacity:1;transform:none}}
-/* mystical hero */
-.dream-hero{position:relative;overflow:hidden;border-radius:22px;padding:30px 22px;text-align:center;color:#fff;background:linear-gradient(160deg,#1a2a4f,#243b6b 45%,#0c8a63);margin-bottom:22px}
-.dream-hero h1{font-family:var(--display);font-size:1.6rem;font-weight:700;margin:14px 0 4px;position:relative}
-.dream-hero p{opacity:.85;margin:0;font-size:.92rem;position:relative}
-.orb{width:84px;height:84px;border-radius:50%;margin:0 auto;background:radial-gradient(circle at 35% 30%,#fff,#cfe9ff 30%,#7aa6e8 60%,#4a6fb5);box-shadow:0 0 36px rgba(150,190,255,.7);animation:bob 4s ease-in-out infinite;position:relative;z-index:2}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.star{position:absolute;color:#fff;opacity:.7;animation:tw 2s ease-in-out infinite}
-.star:nth-child(1){top:20px;left:30px;font-size:.8rem}.star:nth-child(2){top:50px;right:40px;font-size:1.1rem;animation-delay:.5s}
-.star:nth-child(3){bottom:30px;left:60px;font-size:.7rem;animation-delay:1s}.star:nth-child(4){top:30px;right:90px;font-size:.9rem;animation-delay:1.4s}
-.star:nth-child(5){bottom:24px;right:30px;font-size:1rem;animation-delay:.8s}
-@keyframes tw{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+
+.dream-hero{position:relative;overflow:hidden;border-radius:22px;padding:24px 22px 12px;text-align:center;color:#fff;background:linear-gradient(165deg,#161f3d,#24306b 50%,#0c8a63);margin-bottom:22px}
+.dream-hero h1{font-family:var(--display);font-size:1.6rem;font-weight:700;margin:6px 0 4px;position:relative}
+.dream-hero p{opacity:.85;margin:0 0 6px;font-size:.92rem;position:relative}
+/* fortune teller scene */
+.seer{display:block;margin:0 auto;width:200px;height:150px}
+.ball-glow{animation:pulse 3s ease-in-out infinite;transform-origin:center}
+@keyframes pulse{0%,100%{opacity:.55}50%{opacity:1}}
+.spark{animation:twk 2s ease-in-out infinite;transform-origin:center}
+.spark.s2{animation-delay:.6s}.spark.s3{animation-delay:1.1s}.spark.s4{animation-delay:1.5s}
+@keyframes twk{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1.15)}}
+.seer-body{animation:sway 5s ease-in-out infinite;transform-origin:120px 150px}
+@keyframes sway{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
 
 .tabs{display:flex;gap:8px;margin-bottom:20px}
-.tabs button{flex:1;padding:13px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;font-family:var(--display);font-weight:600;cursor:pointer;color:var(--muted);transition:.18s;font-size:1rem}
-.tabs button.on{background:linear-gradient(135deg,#243b6b,#0c8a63);color:#fff;border-color:transparent;transform:translateY(-2px);box-shadow:0 6px 16px rgba(36,59,107,.3)}
+.tabs button{flex:1;padding:13px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;font-family:var(--display);font-weight:600;cursor:pointer;color:var(--muted);transition:.18s;font-size:1rem;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.tabs button.on{background:linear-gradient(135deg,#24306b,#0c8a63);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(36,48,107,.3)}
 
-.magic-btn{width:100%;background:linear-gradient(120deg,#3a5da8,#0c8a63);color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--display);font-weight:700;font-size:1.1rem;cursor:pointer;box-shadow:0 6px 18px rgba(58,93,168,.35);transition:.15s}
+.magic-btn{width:100%;background:linear-gradient(120deg,#3a5da8,#0c8a63);color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--display);font-weight:700;font-size:1.08rem;cursor:pointer;box-shadow:0 6px 18px rgba(58,93,168,.35);transition:.15s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .magic-btn:hover{transform:translateY(-2px)}.magic-btn:active{transform:scale(.97)}.magic-btn:disabled{opacity:.6}
 
-.num-out{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;justify-content:center}
+.interp{background:var(--surface-2);border-radius:14px;padding:16px;margin-top:16px;font-size:.98rem;line-height:1.65;border-left:3px solid var(--jade)}
+.interp .who{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:600;color:var(--jade-deep);margin-bottom:8px;font-size:.92rem}
 .num-grid{display:flex;flex-direction:column;gap:10px;margin-top:16px}
-.num-card{display:block;padding:14px 16px;background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;text-decoration:none;color:var(--ink);opacity:0;transform:translateY(10px);animation:reveal-num .5s ease forwards;transition:transform .15s,box-shadow .15s}
+.num-card{display:block;padding:14px 16px;background:linear-gradient(135deg,#fff8e7,var(--gold-soft));border:1.5px solid var(--gold-line);border-radius:16px;text-decoration:none;color:var(--ink);opacity:0;transform:translateY(10px);animation:rise .5s ease forwards;transition:transform .15s,box-shadow .15s}
 .num-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-sm)}
 .num-card:nth-child(2){animation-delay:.1s}.num-card:nth-child(3){animation-delay:.2s}.num-card:nth-child(4){animation-delay:.3s}
-@keyframes reveal-num{to{opacity:1;transform:none}}
 .nc-head{display:flex;align-items:center;justify-content:space-between}
 .nc-n{font-family:var(--tnum);font-size:2rem;font-weight:700;color:#8a6608;letter-spacing:.08em}
-.nc-arrow{font-family:var(--display);font-weight:600;font-size:.82rem;color:var(--jade-deep)}
+.nc-arrow{font-family:var(--display);font-weight:600;font-size:.82rem;color:var(--jade-deep);display:inline-flex;align-items:center;gap:4px}
 .nc-stat{font-size:.86rem;color:var(--muted);margin-top:6px}.nc-stat b{color:var(--ink)}
 .ref-note{font-size:.78rem;color:var(--muted);text-align:center;margin-top:12px;line-height:1.5}
-.interp{background:var(--surface-2);border-radius:14px;padding:16px;margin-top:16px;font-size:.98rem;line-height:1.6;border-left:3px solid var(--jade)}
-.loading{text-align:center;padding:20px;color:var(--muted)}
-.loading .dots span{display:inline-block;animation:bounce 1.2s infinite}.loading .dots span:nth-child(2){animation-delay:.15s}.loading .dots span:nth-child(3){animation-delay:.3s}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important}.reveal,.num-out a{opacity:1;transform:none}}
+.loading{text-align:center;padding:20px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+.loading svg{width:40px;height:40px;color:#3a5da8;animation:pulse 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;animation-iteration-count:1!important}.reveal,.num-card{opacity:1;transform:none}}
 </style></head><body>
 <header class="site-head"><div class="wrap">
 <a class="brand" href="/"><span class="logo">฿</span><b>ตรวจหวย<small>ทำนายฝัน</small></b></a>
@@ -49,19 +50,38 @@
 </div></header>
 <main class="wrap">
 <section class="dream-hero reveal">
-<span class="star">⭐</span><span class="star">✨</span><span class="star">⭐</span><span class="star">✨</span><span class="star">🌟</span>
-<div class="orb"></div>
-<h1 id="hero-title">ทำนายฝันเป็นเลข</h1>
-<p id="hero-sub">เล่าความฝัน แล้วให้เลขนำโชคปรากฏ</p>
+<svg class="seer" viewBox="0 0 240 160" fill="none">
+  <defs><radialGradient id="bg" cx="50%" cy="42%" r="55%"><stop offset="0%" stop-color="#ffffff"/><stop offset="45%" stop-color="#cfe3ff"/><stop offset="100%" stop-color="#5f86d6"/></radialGradient></defs>
+  <g class="seer-body" stroke="#ffffff" stroke-opacity=".85" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M120 50c-30 0-46 22-50 60h100c-4-38-20-60-50-60z" fill="#ffffff" fill-opacity=".08"/>
+    <path d="M120 26c-13 0-22 10-22 22 0 9 6 15 6 15h32s6-6 6-15c0-12-9-22-22-22z" fill="#ffffff" fill-opacity=".12"/>
+    <path d="M98 48c4 6 13 10 22 10s18-4 22-10"/>
+    <path d="M92 110c8-8 14-10 14-10M148 110c-8-8-14-10-14-10"/>
+  </g>
+  <ellipse cx="120" cy="124" rx="34" ry="9" fill="#ffffff" fill-opacity=".10"/>
+  <circle class="ball-glow" cx="120" cy="112" r="30" fill="url(#bg)"/>
+  <circle cx="120" cy="112" r="30" stroke="#ffffff" stroke-opacity=".5" stroke-width="1.5"/>
+  <path d="M110 104a10 10 0 0 1 9-6" stroke="#ffffff" stroke-opacity=".8" stroke-width="2" stroke-linecap="round"/>
+  <g fill="#ffe9a8">
+    <path class="spark s1" d="M60 50l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>
+    <path class="spark s2" d="M186 44l1.5 4.5 4.5 1.5-4.5 1.5-1.5 4.5-1.5-4.5-4.5-1.5 4.5-1.5z"/>
+    <path class="spark s3" d="M176 96l1.5 4.5 4.5 1.5-4.5 1.5-1.5 4.5-1.5-4.5-4.5-1.5 4.5-1.5z"/>
+    <path class="spark s4" d="M52 96l1.2 3.6 3.6 1.2-3.6 1.2-1.2 3.6-1.2-3.6-3.6-1.2 3.6-1.2z"/>
+  </g>
+</svg>
+<h1 id="hero-title">ทำนายฝันเป็นเลข</h1><p id="hero-sub">เล่าความฝัน หมอดูจะตีความเป็นเลขนำโชคให้</p>
 </section>
 
-<div class="tabs reveal"><button id="t-dream" class="on">🔮 ทำนายฝัน</button><button id="t-lucky">🎂 เลขมงคล</button></div>
+<div class="tabs reveal">
+<button id="t-dream" class="on"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="10" r="6.5"/><path d="M6.5 15.5 5 20h14l-1.5-4.5"/><path d="M9.2 8.4a3.4 3.4 0 0 1 3.2-1.9"/></svg>ทำนายฝัน</button>
+<button id="t-lucky"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 15c2 0 2 1.4 4 1.4S10 15 12 15s2 1.4 4 1.4S18 15 20 15"/><line x1="12" y1="4" x2="12" y2="9"/><circle cx="12" cy="3" r=".7" fill="currentColor" stroke="none"/></svg>เลขมงคล</button>
+</div>
 
 <section id="panel-dream" class="reveal">
 <section class="card">
 <label>เล่าความฝันของคุณ</label>
 <textarea id="dream" rows="3" placeholder="เช่น ฝันเห็นงูใหญ่เลื้อยเข้าบ้าน"></textarea>
-<div style="margin-top:14px"><button class="magic-btn" id="dream-go">🔮 ทำนายเลขนำโชค</button></div>
+<div style="margin-top:14px"><button class="magic-btn" id="dream-go"><svg class="ic" viewBox="0 0 24 24"><path d="M5 19 16 8"/><path d="M16 4l1 2.6L19.6 8 17 9l-1 2.6L15 9l-2.6-1L15 6.6z"/></svg>ทำนายเลขนำโชค</button></div>
 <div id="dream-out"></div>
 </section>
 </section>
@@ -70,7 +90,7 @@
 <section class="card">
 <label>วันเกิดของคุณ</label>
 <input id="bday" type="date">
-<div style="margin-top:14px"><button class="magic-btn" id="lucky-go">🎂 คำนวณเลขมงคล</button></div>
+<div style="margin-top:14px"><button class="magic-btn" id="lucky-go"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20h16v-7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2z"/><path d="M4 15c2 0 2 1.4 4 1.4S10 15 12 15s2 1.4 4 1.4S18 15 20 15"/><line x1="12" y1="4" x2="12" y2="9"/></svg>คำนวณเลขมงคล</button></div>
 <div id="lucky-out"></div>
 </section>
 </section>
@@ -79,19 +99,21 @@
 <footer class="site-foot"><div class="wrap"><span class="note">เพื่อความบันเทิงเท่านั้น</span></div></footer>
 <script>
 const $=id=>document.getElementById(id);
+const CHART='<svg class="ic" style="width:1em;height:1em;color:var(--jade);vertical-align:-.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="14" width="3" height="6" rx="1"/></svg>';
+const ARR='<svg class="ic" style="width:.9em;height:.9em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="18" y2="12"/><polyline points="13 7 18 12 13 17"/></svg>';
 async function renderNumbers(host,nums){
-  host.innerHTML='<div class="num-grid">'+nums.map(n=>`<a class="num-card" href="/huay/${n}"><div class="nc-head"><b class="nc-n">${n}</b><span class="nc-arrow">ดูสถิติเต็ม →</span></div><div class="nc-stat" data-n="${n}">กำลังโหลดสถิติ…</div></a>`).join('')+'</div><p class="ref-note">📊 อ้างอิงจากสถิติผลสลากกินแบ่งรัฐบาลย้อนหลังในระบบ · กดที่เลขเพื่อดูประวัติการออกเต็ม ๆ</p>';
-  for(const n of nums){try{const d=await(await fetch('/api/number/'+n)).json();const el=host.querySelector(`.nc-stat[data-n="${n}"]`);if(el)el.innerHTML=d.total?`📊 เลขนี้เคยออกในผลรางวัลมาแล้ว <b>${d.total} ครั้ง</b>${d.lastThai?` · ออกล่าสุดงวด <b>${d.lastThai}</b>`:''} (จาก ${d.totalDraws} งวด)`:'ยังไม่เคยออกในสถิติย้อนหลังที่มี';}catch{}}
+  host.innerHTML='<div class="num-grid">'+nums.map(n=>`<a class="num-card" href="/huay/${n}"><div class="nc-head"><b class="nc-n">${n}</b><span class="nc-arrow">ดูสถิติเต็ม ${ARR}</span></div><div class="nc-stat" data-n="${n}">กำลังโหลดสถิติ…</div></a>`).join('')+`</div><p class="ref-note">${CHART} อ้างอิงจากสถิติผลสลากกินแบ่งรัฐบาลย้อนหลังในระบบ · กดที่เลขเพื่อดูประวัติการออกเต็ม ๆ</p>`;
+  for(const n of nums){try{const d=await(await fetch('/api/number/'+n)).json();const el=host.querySelector(`.nc-stat[data-n="${n}"]`);if(el)el.innerHTML=d.total?`เลขนี้เคยออกในผลรางวัลมาแล้ว <b>${d.total} ครั้ง</b>${d.lastThai?` · ออกล่าสุดงวด <b>${d.lastThai}</b>`:''} (จาก ${d.totalDraws} งวด)`:'ยังไม่เคยออกในสถิติย้อนหลังที่มี';}catch{}}
 }
-function setTab(d){const dr=d==='dream';$('t-dream').classList.toggle('on',dr);$('t-lucky').classList.toggle('on',!dr);$('panel-dream').style.display=dr?'':'none';$('panel-lucky').style.display=dr?'none':'';$('hero-title').textContent=dr?'ทำนายฝันเป็นเลข':'เลขมงคลส่วนตัว';$('hero-sub').textContent=dr?'เล่าความฝัน แล้วให้เลขนำโชคปรากฏ':'เลขนำโชคจากวันเกิดของคุณ';}
+function setTab(d){const dr=d==='dream';$('t-dream').classList.toggle('on',dr);$('t-lucky').classList.toggle('on',!dr);$('panel-dream').style.display=dr?'':'none';$('panel-lucky').style.display=dr?'none':'';$('hero-title').textContent=dr?'ทำนายฝันเป็นเลข':'เลขมงคลส่วนตัว';$('hero-sub').textContent=dr?'เล่าความฝัน หมอดูจะตีความเป็นเลขนำโชคให้':'เลขนำโชคจากวันเกิดของคุณ';}
 $('t-dream').onclick=()=>setTab('dream');$('t-lucky').onclick=()=>setTab('lucky');
 $('dream-go').onclick=async()=>{
   const text=$('dream').value.trim();if(!text)return alert('เล่าความฝันก่อนนะ');
-  $('dream-out').innerHTML='<div class="loading">🔮 กำลังเพ่งลูกแก้ว<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>';
+  $('dream-out').innerHTML='<div class="loading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6.5"/><path d="M6.5 15.5 5 20h14l-1.5-4.5"/></svg>หมอดูกำลังเพ่งลูกแก้ว…</div>';
   $('dream-go').disabled=true;
   try{const r=await fetch('/api/dream',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});const d=await r.json();
     if(!r.ok){$('dream-out').innerHTML=`<p class="note">${d.error||'ทำนายไม่สำเร็จ'}</p>`;}
-    else{$('dream-out').innerHTML=`<div class="interp">${d.interpretation||''}</div><div id="dream-nums"></div><p class="note" style="margin-top:10px;text-align:center">${d.note||''}</p>`;renderNumbers($('dream-nums'),d.numbers||[]);}
+    else{$('dream-out').innerHTML=`<div class="interp"><div class="who"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="6.5"/><path d="M6.5 15.5 5 20h14l-1.5-4.5"/></svg>คำทำนายจากหมอดู</div>${d.interpretation||''}</div><div id="dream-nums"></div><p class="note" style="margin-top:10px;text-align:center">${d.note||''}</p>`;renderNumbers($('dream-nums'),d.numbers||[]);}
   }catch{$('dream-out').innerHTML='<p class="note">เกิดข้อผิดพลาด</p>';}
   $('dream-go').disabled=false;
 };
@@ -102,7 +124,7 @@ $('lucky-go').onclick=()=>{
   const dd=+m[3],mm=+m[2],yy=+m[1];
   const core=reduce2(dd+mm+dsum(yy)),a=String(dd).padStart(2,'0'),bb=reduce2(dd*mm),three=String((dd*100+mm*7+dsum(yy))%1000).padStart(3,'0');
   const nums=[...new Set([core,a,bb,three])];
-  $('lucky-out').innerHTML=`<div class="interp">เลขมงคลของคุณจากวันเกิด — แต่ละเลขมีสถิติการออกจริงให้ดูด้วย ✨</div><div id="lucky-nums"></div>`;
+  $('lucky-out').innerHTML=`<div class="interp">เลขมงคลของคุณจากวันเกิด — แต่ละเลขมีสถิติการออกจริงให้ดูประกอบด้วย</div><div id="lucky-nums"></div>`;
   renderNumbers($('lucky-nums'),nums);
 };
 </script></body></html>

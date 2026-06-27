@@ -229,10 +229,16 @@ ul.clean li { padding: 10px 14px; background: var(--surface-2); border-radius: v
 .promo:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,.16); }
 .promo-game { background: linear-gradient(135deg, #14b884, #0c8a63 55%, #075c45); }
 .promo-dream { background: linear-gradient(135deg, #3a5da8, #243b6b 50%, #0c8a63); }
-.promo-emoji { font-size: 2.4rem; line-height: 1; transition: transform .25s; }
-.promo:hover .promo-emoji { transform: scale(1.18) rotate(8deg); }
+.promo-ico { width: 46px; height: 46px; display: grid; place-items: center; background: rgba(255,255,255,.16); border-radius: 13px; transition: transform .25s; }
+.promo-ico svg { width: 26px; height: 26px; }
+.promo:hover .promo-ico { transform: translateY(-2px) scale(1.06); }
+.promo-go .ar { width: 16px; height: 16px; vertical-align: -.2em; }
 .promo-t { font-family: var(--display); font-weight: 700; font-size: 1.18rem; margin-top: 6px; }
 .promo-s { font-size: .82rem; opacity: .9; line-height: 1.45; }
 .promo-go { margin-top: auto; font-family: var(--display); font-weight: 600; font-size: .9rem; opacity: .95; }
 .promo::after { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,.1); }
 @media (max-width: 560px) { .promo-cols { grid-template-columns: 1fr; } .promo { min-height: 0; } }
+
+/* ---- inline line-icons ---- */
+.ic-sm { width: 1.05em; height: 1.05em; vertical-align: -.18em; }
+.hot-h .ic-sm { color: var(--jade); }

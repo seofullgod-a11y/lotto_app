@@ -128,7 +128,7 @@ async function check() {
         const totalLine = res.total ? `<div class="total">รวม ${fmt(res.total)} บาท</div>` : '';
         return `<div class="res win"><div><div class="n">${esc(res.number)}</div><span class="win-stamp">ถูกรางวัล</span></div>
           <div class="detail"><div class="verdict">ยินดีด้วย!</div><div class="breakdown">${labels}</div>${totalLine}
-          <button class="share-btn" onclick="_shareCard('${esc(res.number)}','ถูกรางวัล!')">📸 แชร์</button></div></div>`;
+          <button class="share-btn" onclick="_shareCard('${esc(res.number)}','ถูกรางวัล!')">แชร์ผล</button></div></div>`;
       }
       return `<div class="res lose"><div class="n">${esc(res.number)}</div>
         <div class="detail"><div class="verdict">ไม่ถูกรางวัล</div><div class="breakdown">งวด ${esc(data.thaiDate)}</div></div></div>`;
@@ -204,7 +204,7 @@ async function initCountdown() {
   setInterval(() => {
     if (!target) return;
     $('cd-time').textContent = fmtCountdown(target - Date.now());
-    $('cd-viewers').innerHTML = viewers ? `👀 ${viewers} คนกำลังลุ้น` : '';
+    $('cd-viewers').textContent = viewers ? `${viewers} คนกำลังลุ้น` : '';
   }, 1000);
 }
 
@@ -230,7 +230,7 @@ async function renderTickets() {
     const res = statusMap[i];
     const lotName = (LOTTERIES.find(l=>l.code===t.lottery)||{}).short || t.lottery;
     let status = '<span class="note">รอผล</span>';
-    if (res) status = res.wins.length ? `<span class="tk-win">🎉 ถูกรางวัล${res.total?' '+res.total.toLocaleString('th-TH')+' บาท':''}</span>` : '<span class="note">ยังไม่ถูก</span>';
+    if (res) status = res.wins.length ? `<span class="tk-win">ถูกรางวัล${res.total?' '+res.total.toLocaleString('th-TH')+' บาท':''}</span>` : '<span class="note">ยังไม่ถูก</span>';
     return `<div class="tk-row"><div><b class="num">${t.number}</b> <small class="note">${lotName}</small><div>${status}</div></div><button class="tk-del" data-i="${i}">ลบ</button></div>`;
   }).join('');
   box.querySelectorAll('.tk-del').forEach(btn => btn.onclick = () => { const t = getTickets(); t.splice(+btn.dataset.i, 1); setTickets(t); renderTickets(); });
